@@ -1,50 +1,35 @@
-# Welcome to your Expo app 👋
+# Zeus Wallet: Solana + Bitcoin Payment App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is a cross-chain mobile wallet built with Expo/React Native, supporting both Solana and Bitcoin payments. It allows users to send and receive payments, scan QR codes to pay, and manage their balances securely.
 
-## Get started
+## Features
+- Solana and Bitcoin wallet support
+- Send and receive payments
+- Scan QR codes to pay (Solana Pay and Bitcoin BIP21)
+- Secure key management (Solana via Mobile Wallet Adapter, Bitcoin via in-memory/demo storage)
+- Transaction history and payment requests
+
+## Getting Started
 
 1. Install dependencies
-
    ```bash
    npm install
    ```
-
 2. Start the app
-
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## Project Structure
+- `app/wallet/` — Wallet providers and hooks for Solana and Bitcoin
+- `screens/` — Main screens (Home, Send, Receive, QR Scanner, Payment)
+- `components/` — UI components (Balance, TransactionList, SendForm, etc.)
+- `utils/` — Utility functions (QR parsing, formatting, etc.)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Learn More
+- [Solana Pay](https://github.com/solana-labs/solana-pay)
+- [Bitcoin BIP21](https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This project is a work in progress. Contributions welcome!
