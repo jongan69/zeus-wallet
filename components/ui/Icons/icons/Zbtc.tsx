@@ -1,20 +1,18 @@
-import * as React from 'react';
-import { ViewStyle } from 'react-native';
-import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+import Svg, { Defs, LinearGradient, Path, Stop, SvgProps } from 'react-native-svg';
 
 export interface IconProps {
-  style?: ViewStyle;
-  size?: 18 | 14 | 12;
-  color?: string; // Not used directly, but kept for API compatibility
+  props?: SvgProps;
+  size?: number;
+  color?: string;
 }
 
-export default function ZbtcIcon({ style, size = 18 }: IconProps) {
+export default function ZbtcIcon({ props, size = 18 }: IconProps) {
   return (
     <Svg
       width={size}
       height={size}
       viewBox="0 0 18 18"
-      style={style}
+      {...props}
       fill="none"
     >
       <Path

@@ -9,8 +9,8 @@ import ECPairFactory from "ecpair";
 import { BitcoinNetwork } from "@/types/store";
 import { BitcoinWallet, BitcoinXOnlyPublicKey } from "@/types/wallet";
 
-import { convertBitcoinNetwork } from ".";
 import { getLocalStorage, removeLocalStorage, setLocalStorage } from "@/utils/localStorage";
+import { convertBitcoinNetwork } from ".";
 bitcoin.initEccLib(ecc);
 
 export const ECPair = ECPairFactory(ecc);
@@ -36,7 +36,6 @@ export function tweakSigner(
   signer: bitcoin.Signer,
   opts: TweakSignerOpts = { network: bitcoin.networks.regtest }
 ): bitcoin.Signer {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
   let privateKey: Uint8Array | undefined = signer.privateKey!;
   if (!privateKey) {
@@ -53,9 +52,15 @@ export function tweakSigner(
   if (!tweakedPrivateKey) {
     throw new Error("Invalid tweaked private key!");
   }
-  return ECPair.fromPrivateKey(Buffer.from(tweakedPrivateKey), {
+  const tweakedKeyPair = ECPair.fromPrivateKey(Buffer.from(tweakedPrivateKey), {
     network: opts.network,
   });
+  return {
+    ...tweakedKeyPair,
+    publicKey: Buffer.from(tweakedKeyPair.publicKey),
+    sign: (hash) => Buffer.from(tweakedKeyPair.sign(hash)),
+    signSchnorr: (hash) => Buffer.from(tweakedKeyPair.signSchnorr(hash)),
+  };
 }
 
 export function tapTweakHash(pubkey: Buffer, h: Buffer | undefined): Buffer {
@@ -68,54 +73,73 @@ export const deriveBitcoinWallet = async (
   signMessage: (message: Uint8Array) => Promise<Uint8Array>
 ): Promise<BitcoinWallet | null> => {
   try {
-    if (publicKey === undefined) return null;
+    console.log('[deriveBitcoinWallet] called with:', { publicKey: publicKey?.toBase58?.(), bitcoinNetwork, signMessageExists: !!signMessage });
+    if (publicKey === undefined) {
+      console.log('[deriveBitcoinWallet] publicKey is undefined');
+      return null;
+    }
     const ECPair = ECPairFactory(ecc);
     bitcoin.initEccLib(ecc);
-    // `publicKey` will be null if the wallet isn't connected
-    if (!publicKey) throw new Error("Wallet not connected!");
-    // `signMessage` will be undefined if the wallet doesn't support it
-    if (!signMessage)
+    if (!publicKey) {
+      console.log('[deriveBitcoinWallet] Wallet not connected!');
+      throw new Error("Wallet not connected!");
+    }
+    if (!signMessage) {
+      console.log('[deriveBitcoinWallet] Wallet does not support message signing!');
       throw new Error("Wallet does not support message signing!");
-    // Encode anything as bytes
+    }
     const message = new TextEncoder().encode(
       `By proceeding, you are authorizing the generation of a Testnet address based on the Solana wallet you've connected. This process does not charge any fees. Connected Solana wallet address:${publicKey.toBase58()}`
     );
+    console.log('[deriveBitcoinWallet] Message to sign:', new TextDecoder().decode(message));
 
-    // Sign the bytes using the wallet
     const signature = await signMessage(message);
+    console.log('[deriveBitcoinWallet] Signature:', Buffer.from(signature).toString('hex'));
 
-    // Verify that the bytes were signed using the private key that matches the known public key
-    // if (!verify(signature, message, publicKey.toBytes()))
-    //   throw new Error("Invalid signature!");
+    // const isValid = verify(signature, message, publicKey.toBytes());
+    // console.log('[deriveBitcoinWallet] Signature valid:', isValid);
+    // if (!isValid) throw new Error("Invalid signature!");
     const signature_hash = sha256(Buffer.from(signature));
     const privkey_hex = signature_hash.toString("hex");
+    console.log('[deriveBitcoinWallet] signature_hash:', privkey_hex);
 
     const keyPair = ECPair.fromPrivateKey(signature_hash);
     const privkey = keyPair;
-    const pubkey = keyPair.publicKey.toString("hex");
+    const pubkey = Buffer.from(keyPair.publicKey).toString("hex");
+    console.log('[deriveBitcoinWallet] keyPair:', { privkey, pubkey });
     const network = convertBitcoinNetwork(bitcoinNetwork);
+    console.log('[deriveBitcoinWallet] network:', network);
 
     const p2pkh =
       bitcoin.payments.p2pkh({
-        pubkey: keyPair.publicKey,
+        pubkey: Buffer.from(keyPair.publicKey),
         network,
       }).address ?? "";
     const p2wpkh =
       bitcoin.payments.p2wpkh({
-        pubkey: keyPair.publicKey,
+        pubkey: Buffer.from(keyPair.publicKey),
         network,
       }).address ?? "";
     const p2tr =
       bitcoin.payments.p2tr({
-        internalPubkey: keyPair.publicKey.subarray(1, 33),
+        internalPubkey: Buffer.from(keyPair.publicKey.subarray(1, 33)),
         network,
       }).address ?? "";
+    console.log('[deriveBitcoinWallet] addresses:', { p2pkh, p2wpkh, p2tr });
 
-    const tweakKeypair = tweakSigner(keyPair, {
-      network,
-    });
+    const tweakKeypair = tweakSigner(
+      {
+        ...keyPair,
+        privateKey: signature_hash,
+        publicKey: Buffer.from(keyPair.publicKey),
+        sign: (hash: Buffer) => Buffer.from(keyPair.sign(hash)),
+        signSchnorr: (hash: Buffer) => Buffer.from(keyPair.signSchnorr(hash)),
+      } as any,
+      { network }
+    );
+    console.log('[deriveBitcoinWallet] tweakKeypair:', tweakKeypair);
 
-    return {
+    const result = {
       privkeyHex: privkey_hex,
       privkey,
       pubkey,
@@ -123,10 +147,17 @@ export const deriveBitcoinWallet = async (
       p2wpkh,
       p2tr,
       tweakSigner: tweakKeypair,
-      signer: keyPair,
+      signer: {
+        ...keyPair,
+        publicKey: Buffer.from(keyPair.publicKey),
+        sign: (hash: Buffer) => Buffer.from(keyPair.sign(hash)),
+        signSchnorr: (hash: Buffer) => Buffer.from(keyPair.signSchnorr(hash)),
+      },
     };
+    console.log('[deriveBitcoinWallet] result:', result);
+    return result;
   } catch (error) {
-    console.log("error", `Sign Message failed! ${error}`);
+    console.log("[deriveBitcoinWallet] error", `Sign Message failed! ${error}`);
     return null;
   }
 };
@@ -145,6 +176,9 @@ export const getBitcoinConnectorWallet = (
     p2tr: bitcoinAddress ?? "",
   };
 };
+
+
+
 
 export function getInternalXOnlyPubkeyFromUserWallet(
   bitcoinWallet: BitcoinWallet | null

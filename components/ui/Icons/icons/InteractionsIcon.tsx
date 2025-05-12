@@ -1,7 +1,12 @@
-import React from "react";
 import Svg, { ClipPath, Defs, G, Path, Rect, SvgProps } from "react-native-svg";
 
-export default function InteractionIcon(props: SvgProps) {
+export interface IconProps {
+  size?: 18 | 14 | 12;
+  color?: string;
+  props?: SvgProps;
+}
+
+export default function InteractionIcon({ props, size = 18, color }: IconProps) {
   return (
     <Svg width={18} height={18} viewBox="0 0 18 18" fill="none" {...props}>
       <G clipPath="url(#clip0_4298_16080)">

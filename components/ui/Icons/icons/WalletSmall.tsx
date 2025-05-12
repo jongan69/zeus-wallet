@@ -1,20 +1,19 @@
-import React from "react";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Path, SvgProps } from "react-native-svg";
 
 export interface IconProps {
-  style?: any;
+  props?: SvgProps;
   size?: number;
   color?: string;
 }
 
-export default function WalletSmallIcon({ style, size = 12, color = "currentColor" }: IconProps) {
+export default function WalletSmallIcon({ props, size = 12, color }: IconProps) {
   return (
     <Svg
       width={size}
       height={size}
       viewBox="0 0 12 12"
       fill="none"
-      style={style}
+      {...props}
     >
       <Path
         d="M0.75 3C0.336 3 0 2.664 0 2.25C0 1.009 1.01 0 2.25 0H7.25C7.664 0 8 0.336 8 0.75C8 1.164 7.664 1.5 7.25 1.5H2.25C1.837 1.5 1.5 1.836 1.5 2.25C1.5 2.664 1.164 3 0.75 3Z"

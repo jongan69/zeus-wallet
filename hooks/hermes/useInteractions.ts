@@ -7,8 +7,8 @@ import {
   Interactions,
   interactionsSchema,
   InteractionStatus,
+  InteractionType,
 } from "@/types/api";
-import { InteractionType } from "@/types/api";
 import { Fetcher } from "@/utils/axios";
 
 function useInteractions(

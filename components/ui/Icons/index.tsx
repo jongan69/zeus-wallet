@@ -1,6 +1,6 @@
+import { useTheme } from "@/hooks/useTheme";
 import React from "react";
 import { IconComponents, IconName } from "./icons";
-
 export interface IconProps {
   /** Name of Icon */
   name: IconName;
@@ -13,7 +13,7 @@ export interface IconProps {
 }
 
 const Icon = ({ name, size, style, color }: IconProps) => {
-  console.log("Icon", name);
+  const { theme } = useTheme();
   const IconComponent = IconComponents[name];
 
   if (!IconComponent) {
@@ -21,7 +21,7 @@ const Icon = ({ name, size, style, color }: IconProps) => {
     return null;
   }
 
-  return <IconComponent size={size} color={color} />;
+  return <IconComponent size={size} color={color ?? theme === 'dark' ? '#fff' : '#000'} />;
 };
 
 export default Icon;

@@ -1,10 +1,11 @@
+import { ThemedText as Text } from "@/components/ui/ThemedText";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 export default function CardActionsHeader() {
   return (
     <View style={styles.cardActionsTitle}>
-      <Text style={styles.titleText}>Claim your free tBTC</Text>
+      <Text style={styles.titleText} lightColor="#fff">Claim your free tBTC</Text>
     </View>
   );
 }

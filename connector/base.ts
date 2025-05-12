@@ -5,7 +5,6 @@ export interface WalletMetadata {
   downloadUrl: string;
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export abstract class BaseConnector {
   abstract readonly metadata: WalletMetadata;
   abstract isReady(): boolean;
@@ -38,4 +37,3 @@ export abstract class BaseConnector {
   ): Promise<{ txid: string }>;
   abstract disconnect(): void;
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */

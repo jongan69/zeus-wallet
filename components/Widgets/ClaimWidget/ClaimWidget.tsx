@@ -3,7 +3,6 @@ import "../../../polyfills";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 
-import { satoshiToBtc } from "@/bitcoin";
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
 import { useFetchers } from "@/hooks/misc/useFetchers";
@@ -14,7 +13,6 @@ import { createAxiosInstances } from "@/utils/axios";
 import { MODAL_NAMES } from "@/utils/constant";
 import { notifyError } from "@/utils/notification";
 
-import SuccessfulClaim from "@/components/SuccessfulClaim/SuccessfulClaim";
 
 import CardActionsFooter from "./SubComponents/CardActionsFooter";
 import CardActionsHeader from "./SubComponents/CardActionsHeader";
@@ -46,10 +44,12 @@ export default function ClaimWidget() {
     if (!bitcoinWallet) return;
     const fetchClaimableAmount = async () => {
       try {
+        console.log("[fetchClaimableAmount] Called");
         const response = await aegleFetcher(
           `api/v1/bitcoin-regtest-wallet/${bitcoinWallet.p2tr}`,
           claimTBTCSchema
         );
+        console.log("[fetchClaimableAmount] Response received", response);
         if (!response) return;
 
         setClaimableTimes(response.remainingClaimCounts);
@@ -61,31 +61,46 @@ export default function ClaimWidget() {
   }, [bitcoinWallet, aegleFetcher]);
 
   const handleClaim = () => {
-    if (!bitcoinWallet) return;
+    console.log("[handleClaim] Called");
+    if (!bitcoinWallet) {
+      console.log("[handleClaim] No bitcoinWallet found");
+      return;
+    }
 
     setIsClaiming(true);
+    console.log("[handleClaim] setIsClaiming(true)");
 
     const { aegleApi } = createAxiosInstances(solanaNetwork, bitcoinNetwork);
+    console.log("aegleApi", aegleApi);
+
+    console.log("[handleClaim] Created axios instances", { solanaNetwork, bitcoinNetwork });
 
     const claimUrl = `api/v1/bitcoin-regtest-wallet/${bitcoinWallet.p2tr}/claim`;
+    console.log("[handleClaim] claimUrl:", claimUrl);
 
     aegleApi
       .post(claimUrl, {
         amount: CLAIM_AMOUNT_LIMIT,
       })
       .then((response) => {
+        console.log("[handleClaim] Response received", response);
         if (response.status === 200) {
+          console.log("[handleClaim] Claim successful, opening modal");
           openModalByName(MODAL_NAMES.SUCCESSFUL_CLAIM);
         } else if (response.status === 429) {
+          console.log("[handleClaim] Daily claim limit reached");
           notifyError("You have reached the daily claim limit.");
+        } else {
+          console.log("[handleClaim] Unexpected response status", response.status);
         }
       })
       .catch((error) => {
-        console.error("Claim error:", error);
+        console.error("[handleClaim] Claim error:", error);
         notifyError("Claim failed. Please try again later.");
       })
       .finally(() => {
         setIsClaiming(false);
+        console.log("[handleClaim] setIsClaiming(false)");
       });
   };
 
@@ -106,11 +121,11 @@ export default function ClaimWidget() {
           />
         </Animated.View>
       </View>
-      <SuccessfulClaim
+      {/* <SuccessfulClaim
         claimedAmount={satoshiToBtc(CLAIM_AMOUNT_LIMIT)}
         onClose={() => {}}
         onTryStaking={() => {}}
-      />
+      /> */}
     </View>
   );
 }
@@ -122,10 +137,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   claimWidgetCard: {
-    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     margin: 16,
+    
   },
   cardContent: {
   },

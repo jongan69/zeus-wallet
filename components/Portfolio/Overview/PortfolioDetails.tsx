@@ -1,31 +1,57 @@
-import React, { useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { ThemedText as Text } from "@/components/ui/ThemedText";
 
 import { Position } from "@/types/zplClient";
 import { BTC_DECIMALS } from "@/utils/constant";
 import { formatValue } from "@/utils/format";
+import React, { useState } from "react";
+import { Button, StyleSheet, View } from "react-native";
 
-import RedeemModal from "../Modals/Redeem";
 import Icon from "@/components/ui/Icons";
+import { useTheme } from "@/hooks/useTheme";
+import RedeemModal from "../Modals/Redeem";
 
 const PortfolioDetails = ({
   btcPrice,
+  tbtcBalance,
   positions,
   zbtcBalance,
   zbtcBalanceInVault,
 }: {
   btcPrice: number;
+  tbtcBalance: number;
   positions: Position[] | undefined;
   zbtcBalance: BigNumber;
   zbtcBalanceInVault: BigNumber;
 }) => {
   const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
-
+  const { theme } = useTheme();
   // const defiRef = useRef<HTMLDivElement>(null);
   // const redeemRef = useRef<HTMLDivElement>(null);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}>
+     {/* tBTC Section */}
+     <View style={styles.card}>
+        <Text style={styles.sectionTitle}><Text style={{ fontWeight: "bold" }}>tBTC</Text></Text>
+        <View style={styles.row}>
+          <Icon name="zbtc" size={18} />
+          <Text style={styles.balanceText}>
+            {tbtcBalance > 0 ? formatValue(tbtcBalance / 10 ** BTC_DECIMALS, 6) : 0}{" "}
+            <Text style={styles.tokenText}>tBTC</Text>
+          </Text>
+          <Icon name="Lock" size={18} />
+        </View>
+        <Text style={styles.usdText}>
+          ~${tbtcBalance > 0
+            ? formatValue((tbtcBalance / 10 ** BTC_DECIMALS) * btcPrice, 2)
+            : 0} USD
+        </Text>
+        <Button
+          title="Redeem"
+          onPress={() => setIsRedeemModalOpen(true)}
+        />
+      </View>
+
       {/* Available Section */}
       <View style={styles.card}>
         <Text style={styles.sectionTitle}><Text style={{ fontWeight: "bold" }}>Available</Text></Text>
@@ -80,14 +106,14 @@ const PortfolioDetails = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    padding: 12,
     gap: 32,
   },
   card: {
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff",
     borderRadius: 17,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 0,
     elevation: 2,
   },
   sectionTitle: {
@@ -106,11 +132,11 @@ const styles = StyleSheet.create({
   },
   tokenText: {
     fontSize: 18,
-    color: "#888",
+    // color: "#888",
   },
   usdText: {
     fontSize: 16,
-    color: "#333",
+    // color: "#333",
   },
 });
 

@@ -1,8 +1,8 @@
-import React from "react";
-import { View, Text, StyleSheet, Animated } from "react-native";
 import Icon from "@/components/ui/Icons";
+import { ThemedText as Text } from "@/components/ui/ThemedText";
 import Button from "@/components/ui/WalletButton/Button";
-
+import React from "react";
+import { Animated, StyleSheet, View } from "react-native";
 export default function CardActionsFooter({
   claimableTimes,
   claimedProgress,
@@ -60,20 +60,22 @@ const styles = StyleSheet.create({
   actionsContainer: {
     width: "100%",
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 10,
     paddingHorizontal: 0,
     backgroundColor: "#181A20",
     borderRadius: 16,
-    marginTop: 16,
+    marginTop: 10,
     shadowColor: "#ffa794",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
+    marginBottom: 100,
   },
   claimInfoContainer: {
     marginTop: 20,
     width: "100%",
     alignItems: "center",
+   
   },
   claimInfoTitleRow: {
     flexDirection: "row",

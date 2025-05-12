@@ -1,10 +1,12 @@
+import "../../polyfills";
 import { getAccount, getAssociatedTokenAddress } from "@solana/spl-token";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { BigNumber } from "bignumber.js";
 import useSWR from "swr";
 
-import { useNetworkConfig } from "./useNetworkConfig";
+
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
+import { useNetworkConfig } from "./useNetworkConfig";
 const balanceFetcher = async (
   publickey: PublicKey,
   connection: Connection,

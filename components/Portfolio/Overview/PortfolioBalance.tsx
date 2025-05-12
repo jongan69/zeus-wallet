@@ -1,12 +1,12 @@
-import { BigNumber } from "bignumber.js";
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-
 import Icon from "@/components/ui/Icons";
-import { Colors } from "@/constants/Colors";
+import { ThemedText as Text } from "@/components/ui/ThemedText";
 import { BTC_DECIMALS } from "@/utils/constant";
 import { formatValue } from "@/utils/format";
+import { BigNumber } from "bignumber.js";
+import React from "react";
+import { StyleSheet, View } from "react-native";
 
+import { useTheme } from "@/hooks/useTheme";
 import PortfolioPieChart from "./PortfolioPieChart";
 
 const PortfolioBalance = ({
@@ -19,14 +19,15 @@ const PortfolioBalance = ({
   zbtcBalanceInVault: BigNumber;
 }) => {
   const totalBalance = zbtcBalance.plus(zbtcBalanceInVault ?? new BigNumber(0));
+  const { theme } = useTheme();
 
   return (
-    <View style={styles.outerContainer}>
-      <View style={styles.innerContainer}>
+    <View style={[styles.outerContainer, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}>
+      <View style={[styles.innerContainer, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}>
         <View style={styles.contentContainer}>
           {/* Total Balance */}
           <View style={styles.balanceSection}>
-            <Text style={styles.balanceTitle}><Text style={{ fontWeight: "bold" }}>Total Balance</Text></Text>
+            <Text style={styles.balanceTitle}><Text type="defaultSemiBold">Total Balance</Text></Text>
             <View style={styles.balanceRow}>
               <View style={styles.balanceIconRow}>
                 <Icon name="zbtc" size={18} />
@@ -107,12 +108,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
     borderRadius: 25,
-    backgroundColor: Colors.light.background,
   },
   innerContainer: {
     borderWidth: 1,
     borderColor: "#E3EAFE", // fallback for apollo-border-15
-    backgroundColor: Colors.light.background,
     borderRadius: 15,
     paddingHorizontal: 32,
     paddingVertical: 28,
@@ -130,7 +129,7 @@ const styles = StyleSheet.create({
   },
   balanceTitle: {
     fontSize: 18,
-    color: Colors.light.text,
+  
     marginBottom: 8,
   },
   balanceRow: {
@@ -145,17 +144,14 @@ const styles = StyleSheet.create({
   },
   balanceValue: {
     fontSize: 24,
-    color: Colors.light.text,
     fontWeight: "bold",
   },
   balanceValueNumber: {
     fontSize: 24,
-    color: Colors.light.text,
     fontWeight: "bold",
   },
   usdValue: {
     fontSize: 16,
-    color: Colors.light.text,
     marginTop: 4,
   },
   chartAndKeyRow: {
@@ -169,7 +165,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
     gap: 8,
-    marginLeft: 24,
+    marginLeft: "1%",
   },
   keyRow: {
     flexDirection: "row",
@@ -201,11 +197,9 @@ const styles = StyleSheet.create({
   },
   keyLabel: {
     fontSize: 16,
-    color: Colors.light.text,
   },
   keyPercent: {
     fontSize: 16,
-    color: Colors.light.text,
     fontWeight: "bold",
   },
 });

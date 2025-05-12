@@ -9,7 +9,6 @@ export abstract class InjectedConnector extends BaseConnector {
     }
   }
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
   isReady(): boolean {
     if (typeof window !== "undefined") {
       const props = this.property.split(".");
@@ -24,7 +23,6 @@ export abstract class InjectedConnector extends BaseConnector {
     }
     return false;
   }
-  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   async requestAccounts(): Promise<string[]> {
     const accounts = await this.getProviderOrThrow().requestAccounts();
@@ -48,7 +46,6 @@ export abstract class InjectedConnector extends BaseConnector {
     }
     return this.getProviderOrThrow().signMessage(signStr, type);
   }
-  /* eslint-disable @typescript-eslint/no-explicit-any */
   async signPsbt(psbt: string, opt?: any): Promise<string> {
     // ! Warning this might be failed to sign by web extension wallet if the psbt inputs include pubkey not equal to the wallet's pubkey
     // ! due to different web extension wallet design you must go through the documentation of the wallet you are using
@@ -56,7 +53,6 @@ export abstract class InjectedConnector extends BaseConnector {
       ...opt,
     });
   }
-  /* eslint-enable @typescript-eslint/no-explicit-any */
   on(event: string, handler: (data?: unknown) => void) {
     const provider = this.getProvider();
     return provider?.on?.(event, handler);
@@ -66,7 +62,6 @@ export abstract class InjectedConnector extends BaseConnector {
     return provider?.removeListener?.(event, handler);
   }
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
   getProvider() {
     if (this.isReady()) {
       const props = this.property.split(".");
@@ -77,7 +72,6 @@ export abstract class InjectedConnector extends BaseConnector {
       }
     }
   }
-  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   getProviderOrThrow() {
     const provider = this.getProvider();

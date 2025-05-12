@@ -85,6 +85,10 @@ export const createAxiosInstances = (
     })
   );
 
+  console.log("binanceApi", binanceApi);
+  console.log("aegleApi", aegleApi);
+  console.log("aresApi", aresApi);
+  console.log("hermesApi", hermesApi);
   return { binanceApi, aegleApi, aresApi, hermesApi };
 };
 

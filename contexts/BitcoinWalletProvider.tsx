@@ -1,32 +1,33 @@
 import { PublicKey } from "@solana/web3.js";
+
 import * as bitcoin from "bitcoinjs-lib";
+
 import {
-  createContext,
-  Dispatch,
-  ReactNode,
-  SetStateAction,
+  useState,
   useCallback,
-  useContext,
+  ReactNode,
   useEffect,
   useMemo,
-  useRef,
-  useState,
+  createContext,
+  SetStateAction,
+  Dispatch,
+  useContext,
 } from "react";
-import { useSolanaWallet } from "./SolanaWalletProvider";
 
 import {
   deriveBitcoinWallet,
   getBitcoinConnectorWallet,
   txConfirm
 } from "@/bitcoin/wallet";
+
 import { MusesConnector } from "@/connector";
 import usePersistentStore from "@/stores/persistentStore";
 import { BitcoinNetwork } from "@/types/store";
 import { BitcoinWallet, EventName } from "@/types/wallet";
+import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
 import events from "@/utils/event";
 import { notifyError } from "@/utils/notification";
 
-import { removeLocalStorage, setLocalStorage } from "@/utils/localStorage";
 import { type BaseConnector } from "../connector/base";
 
 const connectors: BaseConnector[] = [new MusesConnector()];
@@ -48,7 +49,6 @@ export interface BitcoinWalletContextState {
 
   // Connector Wallet States
   accounts: string[];
-   
   provider: any;
   disconnectConnector: () => void;
   getPublicKey: (connector: BaseConnector) => Promise<string>;
@@ -75,12 +75,10 @@ const BitcoinWalletContext = createContext<BitcoinWalletContextState | null>(
 );
 
 export function BitcoinWalletProvider({ children }: { children: ReactNode }) {
-  console.log('BitcoinWalletProvider render');
-  const bitcoinNetwork = usePersistentStore((state: { bitcoinNetwork: any; }) => state.bitcoinNetwork);
-  const { publicKey: solanaPubkey, signMessage: solanaSignMessage } =
-  useSolanaWallet();
+  const bitcoinNetwork = usePersistentStore((state) => state.bitcoinNetwork);
+  const { publicKey: solanaPubkey, signMessage: solanaSignMessage } = useSolanaWallet();
   const [bitcoinWallet, setBitcoinWallet] = useState<BitcoinWallet | null>(
-    null
+    null  
   );
   const [connecting, setConnecting] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -108,36 +106,13 @@ export function BitcoinWalletProvider({ children }: { children: ReactNode }) {
       setBitcoinWallet(null);
       setBitcoinWalletType(null);
       setAccounts([]);
-      removeLocalStorage("current-connector-id");
+      // localStorage.removeItem("current-connector-id");
     } catch (e) {
       console.error(`Error in disconnect: ${e}`);
     } finally {
       setDisconnecting(false);
     }
   }, []);
-
-  // Track previous values for solanaPubkey and bitcoinNetwork
-  const prevSolanaPubkeyRef = useRef<PublicKey | null | undefined>(solanaPubkey);
-  const prevBitcoinNetworkRef = useRef<BitcoinNetwork | undefined>(bitcoinNetwork);
-
-  useEffect(() => {
-    if (
-      prevSolanaPubkeyRef.current !== solanaPubkey &&
-      solanaPubkey
-    ) {
-      handleDisconnect();
-    }
-    prevSolanaPubkeyRef.current = solanaPubkey;
-  }, [solanaPubkey, handleDisconnect]);
-
-  useEffect(() => {
-    if (
-      prevBitcoinNetworkRef.current !== bitcoinNetwork
-    ) {
-      handleDisconnect();
-    }
-    prevBitcoinNetworkRef.current = bitcoinNetwork;
-  }, [bitcoinNetwork, handleDisconnect]);
 
   const handleSignPsbt = useCallback(
     async (psbt: bitcoin.Psbt, tweaked?: boolean) => {
@@ -258,7 +233,7 @@ export function BitcoinWalletProvider({ children }: { children: ReactNode }) {
   }, [connectorId]);
 
   const disconnectConnector = useCallback(() => {
-    removeLocalStorage("current-connector-id");
+    // localStorage.removeItem("current-connector-id");
     txConfirm.reset();
     if (connector) {
       connector.disconnect();
@@ -338,7 +313,7 @@ export function BitcoinWalletProvider({ children }: { children: ReactNode }) {
         setAccounts([res.p2tr]);
         setConnectorId(connector.metadata.id);
         setConnected(true);
-        setLocalStorage("current-connector-id", connector.metadata.id);
+        // localStorage.setItem("current-connector-id", connector.metadata.id);
 
         if (!res) {
           console.log("Error connecting Bitcoin wallet");
@@ -422,57 +397,47 @@ export function BitcoinWalletProvider({ children }: { children: ReactNode }) {
     }
   }, [accounts]);
 
-  const contextValue = useMemo(() => ({
-    wallet: bitcoinWallet,
-    connecting,
-    connected,
-    disconnecting,
-    connectConnectorWallet: handleConnectorConnect,
-    connectDerivedWallet: handleDerivedWalletConnect,
-    disconnect: handleDisconnect,
-    signPsbt: handleSignPsbt,
-    accounts,
-    provider,
-    disconnectConnector,
-    getPublicKey,
-    signMessage,
-    getNetwork,
-    switchNetwork,
-    sendBitcoin,
-    bitcoinWalletType,
-    setBitcoinWalletType,
-    connectors,
-    connector,
-    setConnectorId,
-    handleConnectorId,
-    connectorId,
-  }), [
-    bitcoinWallet,
-    connecting,
-    connected,
-    disconnecting,
-    handleConnectorConnect,
-    handleDerivedWalletConnect,
-    handleDisconnect,
-    handleSignPsbt,
-    accounts,
-    provider,
-    disconnectConnector,
-    getPublicKey,
-    signMessage,
-    getNetwork,
-    switchNetwork,
-    sendBitcoin,
-    bitcoinWalletType,
-    setBitcoinWalletType,
-    connector,
-    setConnectorId,
-    handleConnectorId,
-    connectorId,
-  ]);
+  // When user switch account in their solana wallet, we need to disconnect bitcoin wallet because the bitcoin address is derive from their solana address
+  if (prevSolanaPubkey !== solanaPubkey && solanaPubkey) {
+    setPrevSolanaPubkey(solanaPubkey);
+    handleDisconnect();
+  }
+
+  if (prevBitcoinNetwork !== bitcoinNetwork) {
+    setPrevBitcoinNetwork(bitcoinNetwork);
+    handleDisconnect();
+  }
 
   return (
-    <BitcoinWalletContext.Provider value={contextValue}>
+    <BitcoinWalletContext.Provider
+      value={{
+        wallet: bitcoinWallet,
+        connecting,
+        connected,
+        disconnecting,
+        connectConnectorWallet: handleConnectorConnect,
+        connectDerivedWallet: handleDerivedWalletConnect,
+        disconnect: handleDisconnect,
+        signPsbt: handleSignPsbt,
+
+        // Connector Wallet States
+        accounts,
+        provider,
+        disconnectConnector,
+        getPublicKey,
+        signMessage,
+        getNetwork,
+        switchNetwork,
+        sendBitcoin,
+        bitcoinWalletType,
+        setBitcoinWalletType,
+        connectors,
+        connector,
+        setConnectorId,
+        handleConnectorId,
+        connectorId,
+      }}
+    >
       {children}
     </BitcoinWalletContext.Provider>
   );

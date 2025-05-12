@@ -1,34 +1,36 @@
+import Svg, { Path, SvgProps } from "react-native-svg";
+
 export interface IconProps {
-  style?: React.CSSProperties;
-  size?: 18 | 14 | 12;
+  props?: SvgProps;
+  size?: number;
   color?: string;
 }
-export default function StakeIcon({ style, size = 18, color }: IconProps) {
+
+export default function StakeIcon({ props, size = 18, color }: IconProps) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
+    <Svg
       width={size}
       height={size}
       viewBox="0 0 18 18"
-      style={style}
+      {...props}
       fill="none"
     >
-      <path
-        stroke="currentColor"
+      <Path
+        stroke={color}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={1.5}
         vectorEffect="non-scaling-stroke"
         d="M3.75 2.75h9.5a2 2 0 0 1 2 2v9.5"
       />
-      <path
-        stroke="currentColor"
+      <Path
+        stroke={color}
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth={1.5}
         vectorEffect="non-scaling-stroke"
         d="M4.74 7.75h5.51v5.51M10.25 7.75l-7.5 7.5"
       />
-    </svg>
+    </Svg>
   );
 }

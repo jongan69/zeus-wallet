@@ -1,18 +1,23 @@
-import React from "react";
 import Svg, { Path, SvgProps } from "react-native-svg";
 
-export default function LockIcon(props: SvgProps) {
+export interface IconProps {
+  props?: SvgProps;
+  size?: number;
+  color?: string;
+}
+
+export default function LockIcon({ props, size = 18, color }: IconProps) {
   return (
     <Svg
-      width={18}
-      height={18}
+      width={size}
+      height={size}
       viewBox="0 0 18 18"
       fill="none"
       {...props}
     >
       <Path
         d="M6.11133 8.33344V5.44455C6.11133 3.849 7.40466 2.55566 9.00022 2.55566C10.5958 2.55566 11.8891 3.849 11.8891 5.44455V8.33344"
-        stroke="currentColor"
+        stroke={color}
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"

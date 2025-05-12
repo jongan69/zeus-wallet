@@ -1,11 +1,8 @@
-// import { useConnection } from "@solana/wallet-adapter-react";
-import { Connection } from "@solana/web3.js";
 import { createContext, useContext, useMemo } from "react";
 import { useSolanaWallet } from "./SolanaWalletProvider";
 
 import { useNetworkConfig } from "@/hooks/misc/useNetworkConfig";
 import { ZplClient } from "@/zplClient";
-// import { useConnection } from "@solana/wallet-adapter-react";
 
 const ZplClientContext = createContext<ZplClient | null>(null);
 

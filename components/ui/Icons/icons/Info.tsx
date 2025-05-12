@@ -1,40 +1,48 @@
-export default function InfoIcon({ color = "#C5C5CF" }: { color?: string }) {
+import Svg, { ClipPath, Defs, G, Path, Rect, SvgProps } from "react-native-svg";
+
+export interface IconProps {
+  size?: 18 | 14 | 12;
+  color?: string;
+  props?: SvgProps;
+}
+
+export default function InfoIcon({ props, size = 18, color }: IconProps) {
   return (
-    <svg
-      width="16"
-      height="16"
+    <Svg
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
-      <g clipPath="url(#clip0_992_3626)">
-        <path
+      <G clipPath="url(#clip0_992_3626)">
+        <Path
           d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
           stroke={color}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <path
+        <Path
           d="M12 16V12"
           stroke={color}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <path
+        <Path
           d="M12 8H12.01"
           stroke={color}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-      </g>
-      <defs>
-        <clipPath id="clip0_992_3626">
-          <rect width="24" height="24" fill="white" />
-        </clipPath>
-      </defs>
-    </svg>
+      </G>
+      <Defs>
+        <ClipPath id="clip0_992_3626">
+          <Rect width="24" height="24" fill="white" />
+        </ClipPath>
+      </Defs>
+    </Svg>
   );
 }

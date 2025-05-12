@@ -1,23 +1,25 @@
+import Svg, { Path, SvgProps } from "react-native-svg";
+
 export interface IconProps {
-  style?: React.CSSProperties;
-  size?: 18 | 14 | 12;
+  props?: SvgProps;
+  size?: number;
   color?: string;
 }
+
 export default function DropdownSmallIcon({
-  style,
+  props,
   size = 12,
   color,
 }: IconProps) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
+    <Svg
       width={size}
       height={size}
       viewBox="0 0 12 12"
-      style={style}
       fill="none"
+      {...props}
     >
-      <path
+      <Path
         stroke={color}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -25,6 +27,6 @@ export default function DropdownSmallIcon({
         vectorEffect="non-scaling-stroke"
         d="m3 4 3-3 3 3M3 8l3 3 3-3"
       />
-    </svg>
+    </Svg>
   );
 }

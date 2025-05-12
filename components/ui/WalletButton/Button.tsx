@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 40,
-    minWidth: 80,
+    maxWidth: 100,
     marginVertical: 4,
     marginHorizontal: 0,
   },

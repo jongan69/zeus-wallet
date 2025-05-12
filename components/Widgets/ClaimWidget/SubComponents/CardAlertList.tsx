@@ -1,8 +1,9 @@
-import { ExternalLink } from "@/components/ExternalLink";
+import { ExternalLink } from "@/components/ui/ExternalLink";
+import { ThemedText as Text } from "@/components/ui/ThemedText";
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
 import React from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 
 export default function CardAlertList() {
   const { isAuthenticated: solanaWalletConnected } = useSolanaWallet();
@@ -15,18 +16,18 @@ export default function CardAlertList() {
       <View style={[styles.alertList, { paddingBottom: 69 }]}> {/* pb-[69px] */}
         <View style={styles.readyContainer}>
           <Image
-            source={require("@/assets/images/icon.png")}
+            source={require("@/assets/images/zeus-logo.png")}
             style={styles.connectedImage}
             resizeMode="contain"
           />
           <View style={styles.readyTextContainer}>
             <View style={styles.readyRow}>
               <Image
-                source={require("@/assets/images/icon.png")} // Placeholder for tasks-complete
+                source={require("@/assets/images/react-logo.png")} // Placeholder for tasks-complete
                 style={styles.tasksCompleteIcon}
                 resizeMode="contain"
               />
-              <Text style={styles.readyTitle}>Connection Complete</Text>
+              <Text style={styles.readyTitle} lightColor="#fff">Connection Complete</Text>
             </View>
             <Text style={styles.readySubtitle}>
               You are <Text style={styles.readyHighlight}>ready to claim</Text> your tBTC below
@@ -93,7 +94,6 @@ const styles = StyleSheet.create({
   },
   readyTitle: {
     fontSize: 18,
-    color: "#222",
     fontWeight: "600",
   },
   readySubtitle: {

@@ -44,8 +44,7 @@ export class WalletService {
     if (!this.currentWallet) {
       throw new Error("No wallet available");
     }
-    // You may want to use a signing method here if needed
-    throw new Error('signMessage not implemented');
+    return nacl.sign.detached(message, this.currentWallet.secretKey);
   }
 
   static getCurrentWallet(): Keypair | null {

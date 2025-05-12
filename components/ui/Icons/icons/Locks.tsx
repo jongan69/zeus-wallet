@@ -1,19 +1,18 @@
-import React from 'react';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, SvgProps } from 'react-native-svg';
 
 export interface IconProps {
-  size?: 18 | 14 | 12;
+  props?: SvgProps;
+  size?: number;
   color?: string;
-  style?: object;
 }
 
-export default function LocksIcon({ style, size = 18, color = 'black' }: IconProps) {
+export default function LocksIcon({ props, size = 18, color }: IconProps) {
   return (
     <Svg
       width={size}
       height={size}
       viewBox="0 0 18 18"
-      style={style}
+      {...props}
       fill="none"
     >
       <Path
