@@ -30,6 +30,20 @@ This is a cross-chain mobile wallet built with Expo/React Native, supporting bot
 - [Solana Pay](https://github.com/solana-labs/solana-pay)
 - [Bitcoin BIP21](https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki)
 
+## App Screenshots
+
+### Home Screen
+![Settings Screen](assets/graphics/app/home.png)
+
+### Settings Screen
+![Settings Screen](assets/graphics/app/settings.png)
+
+### Transactions Screen
+![Transactions Screen](assets/graphics/app/transactions.png)
+
+### Receive Bitcoin Screen
+![Receive Bitcoin Screen](assets/graphics/app/receive.png)
+
 ---
 
 This project is a work in progress. Contributions welcome!
