@@ -33,3 +33,4 @@ This is a cross-chain mobile wallet built with Expo/React Native, supporting bot
 ---
 
 This project is a work in progress. Contributions welcome!
+# zeus-wallet
