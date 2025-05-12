@@ -1,15 +1,14 @@
+import { getLocalStorage, removeLocalStorage, setLocalStorage } from '@/utils/localStorage';
 import { Connection, Keypair, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
-import * as SecureStore from 'expo-secure-store';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import nacl from 'tweetnacl';
-
 export class WalletService {
   private static readonly WALLET_KEY = 'local_wallet';
   private static currentWallet: Keypair | null = null;
 
   static async createWallet(): Promise<Keypair> {
     const newWallet = Keypair.generate();
-    await SecureStore.setItemAsync(
+    await setLocalStorage(
       this.WALLET_KEY,
       Buffer.from(newWallet.secretKey).toString('base64')
     );
@@ -18,7 +17,7 @@ export class WalletService {
   }
 
   static async loadWallet(): Promise<Keypair | null> {
-    const savedWallet = await SecureStore.getItemAsync(this.WALLET_KEY);
+    const savedWallet = await getLocalStorage<string>(this.WALLET_KEY);
     if (!savedWallet) {
       return null;
     }
@@ -28,7 +27,7 @@ export class WalletService {
   }
 
   static async deleteWallet(): Promise<void> {
-    await SecureStore.deleteItemAsync(this.WALLET_KEY);
+    await removeLocalStorage(this.WALLET_KEY);
     this.currentWallet = null;
   }
 

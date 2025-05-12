@@ -20,6 +20,8 @@ const baseCard = {
   borderColor: 'rgba(123,97,255,0.18)',
 };
 
+
+
 function PayMainCard({ onInitiate }: { onInitiate: () => void }) {
   return (
     <BlurView intensity={120} tint={Platform.OS === 'ios' ? 'systemChromeMaterialDark' : 'dark'} style={[styles.glassCard, styles.glassCardEnhanced]}>
@@ -58,9 +60,9 @@ function CameraModal({
       transparent
       onRequestClose={onClose}
     >
-      <View style={[styles.modalBackdrop, { borderRadius: CARD_RADIUS }]}> 
-        <Animated.View style={[styles.animatedCard, { transform: [{ scale: 1 }], opacity: 1, borderRadius: CARD_RADIUS }]}> 
-          <BlurView intensity={90} tint={Platform.OS === 'ios' ? 'systemChromeMaterial' : 'light'} style={[styles.cameraCard, { borderRadius: CARD_RADIUS }]}> 
+      <View style={[styles.modalBackdrop, { borderRadius: CARD_RADIUS }]}>
+        <Animated.View style={[styles.animatedCard, { transform: [{ scale: 1 }], opacity: 1, borderRadius: CARD_RADIUS }]}>
+          <BlurView intensity={90} tint={Platform.OS === 'ios' ? 'systemChromeMaterial' : 'light'} style={[styles.cameraCard, { borderRadius: CARD_RADIUS }]}>
             <LinearGradient
               colors={["rgba(255,255,255,0.10)", "rgba(123,97,255,0.10)"]}
               style={[StyleSheet.absoluteFill, { borderRadius: CARD_RADIUS }]}
@@ -68,15 +70,15 @@ function CameraModal({
             />
             {!permission && <Text style={styles.centerText}>Requesting permission…</Text>}
             {permission && !permission.granted && (
-              <View style={[styles.centeredContent, { borderRadius: CARD_RADIUS }]}> 
+              <View style={[styles.centeredContent, { borderRadius: CARD_RADIUS }]}>
                 <Text style={styles.centerText}>Camera access denied</Text>
                 <Button title="Close" onPress={onClose} />
               </View>
             )}
             {permission?.granted && (
               <>
-                <View style={[styles.cameraContainerOuter, { borderRadius: CARD_RADIUS }]}> 
-                  <View style={[styles.cameraViewWrapper, { borderRadius: 28 }]}> 
+                <View style={[styles.cameraContainerOuter, { borderRadius: CARD_RADIUS }]}>
+                  <View style={[styles.cameraViewWrapper, { borderRadius: 28 }]}>
                     <CameraView
                       style={[styles.cameraView, { borderRadius: 28 }]}
                       onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
@@ -108,7 +110,7 @@ function CameraModal({
                     )}
                     {/* Loading overlay */}
                     {isLoading && (
-                      <BlurView intensity={60} tint="dark" style={[styles.loadingOverlay, { borderRadius: 28 }]}> 
+                      <BlurView intensity={60} tint="dark" style={[styles.loadingOverlay, { borderRadius: 28 }]}>
                         <ActivityIndicator size="large" color="#fff" />
                         <Text style={styles.loadingText}>Preparing payment...</Text>
                       </BlurView>
@@ -233,12 +235,17 @@ export default function PayScreen() {
   }, [showCamera, permission, requestPermission]);
 
   const handleBarCodeScanned = (barcode: { data: string }) => {
+    console.log('barcode', barcode);
     setScanned(true);
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
       Alert.alert('Send Payment?', `Send to:\n${barcode.data}`, [
-        { text: 'Cancel', onPress: () => setScanned(false), style: 'cancel' },
+        {
+          text: 'Cancel',
+          onPress: () => setScanned(false),
+          style: 'cancel'
+        },
         {
           text: 'Send',
           onPress: () => {

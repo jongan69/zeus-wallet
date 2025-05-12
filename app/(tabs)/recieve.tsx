@@ -69,7 +69,7 @@ export default function ClaimPage() {
   const connectWallet = React.useCallback(
     async (wallet: Wallet) => {
       console.log("connectWallet", wallet);
-      if (wallet.type === "connector") {
+      if (wallet?.type === "connector") {
         const connector = connectors[0];
         if (connector?.isReady()) {
           await onConnectorConnect(wallet, connector);
