@@ -2,6 +2,8 @@
 
 This is a cross-chain mobile wallet built with Expo/React Native, supporting both Solana and Bitcoin payments. It allows users to send and receive payments, scan QR codes to pay, and manage their balances securely.
 
+We are basing this port off of [Orpheus](https://github.com/ZeusNetworkHQ/orpheus)
+
 ## Features
 - Solana and Bitcoin wallet support
 - Send and receive payments
