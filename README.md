@@ -32,17 +32,12 @@ This is a cross-chain mobile wallet built with Expo/React Native, supporting bot
 
 ## App Screenshots
 
-### Home Screen
-![Settings Screen](assets/graphics/app/home.png)
-
-### Settings Screen
-![Settings Screen](assets/graphics/app/settings.png)
-
-### Transactions Screen
-![Transactions Screen](assets/graphics/app/transactions.png)
-
-### Receive Bitcoin Screen
-![Receive Bitcoin Screen](assets/graphics/app/receive.png)
+<div style="display: flex; gap: 10px;">
+  <img src="assets/graphics/app/home.png" alt="Home Screen" width="150"/>
+  <img src="assets/graphics/app/settings.png" alt="Settings Screen" width="150"/>
+  <img src="assets/graphics/app/transactions.png" alt="Transactions Screen" width="150"/>
+  <img src="assets/graphics/app/receive.png" alt="Receive Bitcoin Screen" width="150"/>
+</div>
 
 ---
 
