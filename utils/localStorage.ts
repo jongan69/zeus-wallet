@@ -5,6 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 export const CUSTOM_SOLANA_DEVNET_RPC_KEY = "customSolanaDevnetRpcUrl";
 
+
+
+
 interface StorageItem<T> {
   value: T;
   expiry?: number;
@@ -45,6 +48,7 @@ export const getLocalStorage = async <T>(key: string, secure = false): Promise<T
     } else {
       if (secure) {
         item = await SecureStore.getItemAsync(key);
+        console.log('[getLocalStorage] secure item:', item);
       } else {
         item = await AsyncStorage.getItem(key);
       }

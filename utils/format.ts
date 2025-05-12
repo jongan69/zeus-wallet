@@ -8,6 +8,9 @@ export const formatDate = (date: number) => {
   return dayjs(date).format("YYYY.MM.DD HH:mm:ss");
 };
 
+export const capitalizeFirstLetter = (s: string) => (s && String(s[0]).toUpperCase() + String(s).slice(1)) || ""
+
+
 export function formatSolanaAddress(
   address: PublicKey | null | undefined
 ): string {

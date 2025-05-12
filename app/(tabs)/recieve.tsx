@@ -5,6 +5,7 @@ import ClaimWidget from "@/components/Widgets/ClaimWidget/ClaimWidget";
 import { BaseConnector } from "@/connector";
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
+import { capitalizeFirstLetter } from "@/utils/format";
 import { notifyError } from "@/utils/notification";
 import React, { useEffect, useState } from "react";
 import { Alert, Clipboard, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -25,6 +26,7 @@ export default function ClaimPage() {
 
   const [copiedSolana, setCopiedSolana] = useState(false);
   const [copiedBitcoin, setCopiedBitcoin] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState<"bitcoin" | "solana">("bitcoin");
   const solanaWallet = getCurrentWallet();
   const solanaAddress = solanaWallet?.publicKey.toBase58();
   const bitcoinAddress = bitcoinWallet?.p2tr;
@@ -134,13 +136,35 @@ export default function ClaimPage() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Receive Bitcoin</Text>
+      <Text style={styles.header}>Receive {capitalizeFirstLetter(selectedNetwork)}</Text>
       <Text style={styles.description}>
-        Share your Bitcoin address or QR code to receive payments. Only Regtest network is supported.
+        Share your {capitalizeFirstLetter(selectedNetwork)} address or QR code to receive payments. For Bitcoin, only Regtest network is supported.
       </Text>
+      <View style={{ flexDirection: "row", marginBottom: 16 }}>
+        <TouchableOpacity
+          style={[
+            styles.switchButton,
+            selectedNetwork === "bitcoin" && styles.switchButtonActive,
+          ]}
+          onPress={() => setSelectedNetwork("bitcoin")}
+        >
+          <Text style={selectedNetwork === "bitcoin" ? styles.switchTextActive : styles.switchText}>Bitcoin</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.switchButton,
+            selectedNetwork === "solana" && styles.switchButtonActive,
+          ]}
+          onPress={() => setSelectedNetwork("solana")}
+        >
+          <Text style={selectedNetwork === "solana" ? styles.switchTextActive : styles.switchText}>Solana</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.qrContainer}>
-        {bitcoinAddress ? (
-          <QRCode value={bitcoinAddress} size={180} />
+        {selectedNetwork === "bitcoin" && bitcoinAddress ? (
+          <QRCode value={`bitcoin:${bitcoinAddress}`} size={180} />
+        ) : selectedNetwork === "solana" && solanaAddress ? (
+          <QRCode value={`solana:${solanaAddress}`} size={180} />
         ) : (
           <View style={styles.qrPlaceholder} />
         )}
@@ -281,5 +305,24 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 8,
     marginBottom: 24,
+  },
+  switchButton: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: "#23242a",
+    borderRadius: 8,
+    marginHorizontal: 4,
+    alignItems: "center",
+  },
+  switchButtonActive: {
+    backgroundColor: "#ffa794",
+  },
+  switchText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  switchTextActive: {
+    color: "#181A20",
+    fontWeight: "700",
   },
 });

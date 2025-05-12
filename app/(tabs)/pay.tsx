@@ -1,12 +1,14 @@
 import { ThemedButton as Button } from '@/components/ui/ThemedButton';
 import { ThemedText as Text } from '@/components/ui/ThemedText';
+import { formatBitcoinAddress, formatSolanaAddress } from '@/utils/format';
 import { Ionicons } from '@expo/vector-icons';
+import { PublicKey } from '@solana/web3.js';
 import { BlurView } from 'expo-blur';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Easing, Modal, Platform, Animated as RNAnimated, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Easing, Modal, Platform, Animated as RNAnimated, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 const CARD_RADIUS = 36;
 const baseCard = {
@@ -20,7 +22,64 @@ const baseCard = {
   borderColor: 'rgba(123,97,255,0.18)',
 };
 
+const CURRENCY_SCHEME_TO_TICKER: Record<string, string> = {
+  bitcoin: 'BTC',
+  solana: 'SOL',
+  // Add more as needed
+};
 
+function parseBarcodeData(barcodeData: string) {
+  let address: string | null = null;
+  let amount: string | null = null;
+  let currency: string = '';
+  try {
+    let uri = barcodeData;
+    // Extract scheme (currency)
+    const match = uri.match(/^([a-zA-Z0-9]+):/);
+    if (match) {
+      const scheme = match[1].toLowerCase();
+      currency = CURRENCY_SCHEME_TO_TICKER[scheme] || scheme.toUpperCase();
+    }
+    if (!uri.startsWith('http')) {
+      uri = uri.replace(/^([a-zA-Z0-9]+):/, 'https:');
+    }
+    const url = new URL(uri);
+    address = url.hostname;
+    amount = url.searchParams.get('amount');
+  } catch (e) {
+    console.warn('Failed to parse barcode data as URL', e);
+  }
+  return { address, amount, currency };
+}
+
+function formatAddressForCurrency(address: string | null, currency: string): string {
+  if (!address) return 'Unknown';
+  switch (currency) {
+    case 'BTC':
+      return formatBitcoinAddress(address);
+    case 'SOL':
+      return formatSolanaAddress(new PublicKey(address));
+    default:
+      return address;
+  }
+}
+
+function showSendPaymentAlert({ shortAddress, amount, currency, onSend, onCancel }: {
+  shortAddress: string,
+  amount: string,
+  currency: string,
+  onSend: () => void,
+  onCancel: () => void,
+}) {
+  Alert.alert(
+    'Send Payment?',
+    `Send to:\n${shortAddress}\n\nAmount: ${amount} ${currency}`,
+    [
+      { text: 'Cancel', onPress: onCancel, style: 'cancel' },
+      { text: 'Send', onPress: onSend },
+    ]
+  );
+}
 
 function PayMainCard({ onInitiate }: { onInitiate: () => void }) {
   return (
@@ -163,6 +222,12 @@ export default function PayScreen() {
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const [showCheckmark, setShowCheckmark] = useState(false);
 
+  const [amountInputVisible, setAmountInputVisible] = useState(false);
+  const [pendingBarcode, setPendingBarcode] = useState<string | null>(null);
+  const [enteredAmount, setEnteredAmount] = useState('');
+
+  const { currency } = pendingBarcode ? parseBarcodeData(pendingBarcode) : { currency: "" };
+
   useEffect(() => {
     if (showCamera) {
       Animated.parallel([
@@ -235,41 +300,55 @@ export default function PayScreen() {
   }, [showCamera, permission, requestPermission]);
 
   const handleBarCodeScanned = (barcode: { data: string }) => {
-    console.log('barcode', barcode);
+    const { address, amount, currency } = parseBarcodeData(barcode.data);
+    const shortAddress = formatAddressForCurrency(address, currency);
     setScanned(true);
+    if (!amount) {
+      setPendingBarcode(barcode.data);
+      setAmountInputVisible(true);
+      setIsLoading(false);
+      setShowCamera(false);
+      return;
+    }
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      Alert.alert('Send Payment?', `Send to:\n${barcode.data}`, [
-        {
-          text: 'Cancel',
-          onPress: () => setScanned(false),
-          style: 'cancel'
+      showSendPaymentAlert({
+        shortAddress,
+        amount,
+        currency,
+        onSend: () => {
+          setShowCamera(false);
+          router.push({ pathname: '/transactions', params: { recipient: barcode.data, amount, currency } });
         },
-        {
-          text: 'Send',
-          onPress: () => {
-            setShowCamera(false);
-            router.push({ pathname: '/transactions', params: { recipient: barcode.data } });
-          },
-        },
-      ]);
+        onCancel: () => setScanned(false),
+      });
     }, 800);
   };
 
-  if (!showCamera) {
-    return (
-      <View style={styles.outerContainer}>
-        <LinearGradient
-          colors={["#23243a", "#1a1b2e", "#2d1e4f"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[StyleSheet.absoluteFill]}
-        />
-        <PayMainCard onInitiate={() => setShowCamera(true)} />
-      </View>
-    );
-  }
+  const handleAmountConfirm = () => {
+    const { address, currency } = parseBarcodeData(pendingBarcode!);
+    if (!enteredAmount || isNaN(Number(enteredAmount))) {
+      Alert.alert(`Invalid ${currency} amount`, 'Please enter a valid number.');
+      return;
+    }
+    setAmountInputVisible(false);
+    setIsLoading(true);
+    const shortAddress = formatAddressForCurrency(address, currency);
+    setTimeout(() => {
+      setIsLoading(false);
+      showSendPaymentAlert({
+        shortAddress,
+        amount: enteredAmount,
+        currency,
+        onSend: () => {
+          setShowCamera(false);
+          router.push({ pathname: '/transactions', params: { recipient: pendingBarcode, amount: enteredAmount, currency } });
+        },
+        onCancel: () => setScanned(false),
+      });
+    }, 800);
+  };
 
   return (
     <View style={styles.outerContainer}>
@@ -279,19 +358,61 @@ export default function PayScreen() {
         end={{ x: 1, y: 1 }}
         style={[StyleSheet.absoluteFill, { borderRadius: CARD_RADIUS }]}
       />
-      <CameraModal
-        visible={showCamera}
-        onClose={() => setShowCamera(false)}
-        permission={permission}
-        requestPermission={requestPermission}
-        scanned={scanned}
-        isLoading={isLoading}
-        handleBarCodeScanned={handleBarCodeScanned}
-        scanAgainAnim={scanAgainAnim}
-        scanLineAnim={scanLineAnim}
-        showCheckmark={showCheckmark}
-        setScanned={setScanned}
-      />
+      {!showCamera ? (
+        <PayMainCard onInitiate={() => setShowCamera(true)} />
+      ) : (
+        <CameraModal
+          visible={showCamera}
+          onClose={() => setShowCamera(false)}
+          permission={permission}
+          requestPermission={requestPermission}
+          scanned={scanned}
+          isLoading={isLoading}
+          handleBarCodeScanned={handleBarCodeScanned}
+          scanAgainAnim={scanAgainAnim}
+          scanLineAnim={scanLineAnim}
+          showCheckmark={showCheckmark}
+          setScanned={setScanned}
+        />
+      )}
+      {/* Amount Input Modal - always in render tree */}
+      <Modal
+        visible={amountInputVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setAmountInputVisible(false)}
+      >
+        <View style={[styles.modalBackdrop, { borderRadius: CARD_RADIUS, backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+          <View style={[styles.glassCard, { width: 320, alignItems: 'center' }]}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>Enter {currency} amount to send</Text>
+            <TextInput
+              style={{
+                width: 180,
+                height: 44,
+                borderColor: '#7B61FF',
+                borderWidth: 1.2,
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                fontSize: 18,
+                marginBottom: 18,
+                backgroundColor: '#23243a',
+                color: '#fff',
+                textAlign: 'center',
+              }}
+              placeholder={`0.0001`}
+              placeholderTextColor="#aaa"
+              keyboardType="decimal-pad"
+              value={enteredAmount}
+              onChangeText={setEnteredAmount}
+              autoFocus
+            />
+            <View style={{ flexDirection: 'row', gap: 16 }}>
+              <Button title="Cancel" onPress={() => { setAmountInputVisible(false); setScanned(false); setEnteredAmount(''); }} />
+              <Button title="Confirm" onPress={handleAmountConfirm} />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

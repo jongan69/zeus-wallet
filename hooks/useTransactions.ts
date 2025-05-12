@@ -13,9 +13,15 @@ async function setCachedTransactions(address: string, transactions: any[]) {
 }
 
 async function getTransactions(address: PublicKey) {
-    const response = await fetch(`/api/transactions?address=${address.toBase58()}`);
-    const data = await response.json();
-    return data.transactions;
+    if (!address) return [];
+    try {
+        const response = await fetch(`/api/transactions?address=${address.toBase58()}`);
+        const data = await response.json();
+        return data.transactions;
+    } catch (err: any) {
+        console.error(err);
+        return [];
+    }
 }
 
 export function useTransactions(address: PublicKey) {
@@ -28,7 +34,8 @@ export function useTransactions(address: PublicKey) {
         setLoading(true);
 
         (async () => {
-            const cached = await getCachedTransactions(address.toBase58());
+            if (!address) return;
+            const cached = await getCachedTransactions(address?.toBase58());
             if (isMounted) setTransactions(cached);
 
             try {
