@@ -46,10 +46,6 @@ const PortfolioDetails = ({
             ? formatValue((tbtcBalance / 10 ** BTC_DECIMALS) * btcPrice, 2)
             : 0} USD
         </Text>
-        <Button
-          title="Redeem"
-          onPress={() => setIsRedeemModalOpen(true)}
-        />
       </View>
 
       {/* Available Section */}
@@ -108,6 +104,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     gap: 32,
+    paddingBottom: 100,
   },
   card: {
     // backgroundColor: "#fff",

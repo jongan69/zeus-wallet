@@ -24,14 +24,14 @@ export default function LockIcon({ props, size = 18, color }: IconProps) {
       />
       <Path
         d="M9 11.4443V12.3332"
-        stroke="currentColor"
+        stroke={color}
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <Path
         d="M12.3331 8.33301H5.66645C4.68461 8.33301 3.88867 9.12895 3.88867 10.1108V13.6663C3.88867 14.6482 4.68461 15.4441 5.66645 15.4441H12.3331C13.315 15.4441 14.1109 14.6482 14.1109 13.6663V10.1108C14.1109 9.12895 13.315 8.33301 12.3331 8.33301Z"
-        stroke="currentColor"
+        stroke={color}
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"

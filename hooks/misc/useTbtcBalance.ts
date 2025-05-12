@@ -1,5 +1,5 @@
 import { claimTBTCSchema } from "@/types/api";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useFetchers } from "./useFetchers";
 
 
@@ -24,9 +24,14 @@ export const useTbtcBalance = (bitcoinAddress: string) => {
     const [tbtcBalance, setTbtcBalance] = useState<number>(0);
     const { aegleFetcher } = useFetchers();
 
-    useEffect(() => {
-        fetchClaimableAmount(bitcoinAddress, aegleFetcher).then(setTbtcBalance);
-    }, [bitcoinAddress, aegleFetcher]);
+    const refetch = useCallback(
+        () => fetchClaimableAmount(bitcoinAddress, aegleFetcher).then(setTbtcBalance),
+        [bitcoinAddress, aegleFetcher]
+    );
 
-    return tbtcBalance;
+    useEffect(() => {
+        refetch();
+    }, [refetch]);
+
+    return [tbtcBalance, refetch] as const;
 };
