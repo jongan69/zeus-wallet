@@ -69,6 +69,7 @@ interface SolanaWalletContextType {
   getCurrentWallet: () => Keypair | null;
   exportPrivateKey: () => Promise<string | null>;
   connection: Connection;
+  sendTransaction: (transaction: Transaction | VersionedTransaction) => Promise<string>;
 }
 
 const SolanaWalletContext = createContext<SolanaWalletContextType | null>(null)
@@ -145,6 +146,31 @@ export function SolanaWalletProvider({ children }: { children: React.ReactNode }
     return WalletService.exportPrivateKey()
   }, [])
 
+  // Add sendTransaction method
+  const sendTransaction = useCallback(
+    async (transaction: Transaction | VersionedTransaction) => {
+      const wallet = WalletService.getCurrentWallet();
+      if (!wallet) throw new Error("No wallet available");
+
+      let signedTx: Transaction | VersionedTransaction;
+      if (transaction instanceof Transaction) {
+        signedTx = await WalletService.signTransaction(transaction);
+      } else {
+        // VersionedTransaction
+        const signature = nacl.sign.detached(
+          transaction.message.serialize(),
+          wallet.secretKey
+        );
+        transaction.signatures[0] = signature;
+        signedTx = transaction;
+      }
+
+      const raw = signedTx.serialize();
+      return connection.sendRawTransaction(raw);
+    },
+    [connection]
+  );
+
   useEffect(() => {
     loadExistingWallet()
   }, [loadExistingWallet])
@@ -160,7 +186,8 @@ export function SolanaWalletProvider({ children }: { children: React.ReactNode }
     getCurrentWallet,
     exportPrivateKey,
     connection,
-  }), [isAuthenticated, publicKey, login, logout, loadExistingWallet, signTransaction, signMessage, getCurrentWallet, exportPrivateKey, connection])
+    sendTransaction,
+  }), [isAuthenticated, publicKey, login, logout, loadExistingWallet, signTransaction, signMessage, getCurrentWallet, exportPrivateKey, connection, sendTransaction])
 
   return (
     <SolanaWalletContext.Provider value={contextValue}>

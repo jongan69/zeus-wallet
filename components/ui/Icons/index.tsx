@@ -1,4 +1,4 @@
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/hooks/theme/useTheme";
 import React from "react";
 import { IconComponents, IconName } from "./icons";
 export interface IconProps {

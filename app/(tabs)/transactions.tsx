@@ -1,15 +1,15 @@
 import { ThemedText as Text } from '@/components/ui/ThemedText';
 import TransactionCard from '@/components/ui/TransactionCard/TransactionCard';
 import { useSolanaWallet } from '@/contexts/SolanaWalletProvider';
-import { useTheme } from '@/hooks/useTheme';
-import { useTransactions } from '@/hooks/useTransactions';
+import { useTransactions } from '@/hooks/misc/useTransactions';
+import { useTheme } from '@/hooks/theme/useTheme';
 import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useState } from 'react';
 import {
-  Linking,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    Linking,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 const FILTERS = ['All', 'Income', 'Expenses'];

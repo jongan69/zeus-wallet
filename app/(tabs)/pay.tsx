@@ -1,5 +1,6 @@
 import { ThemedButton as Button } from '@/components/ui/ThemedButton';
 import { ThemedText as Text } from '@/components/ui/ThemedText';
+import { useBitcoinWallet } from '@/contexts/BitcoinWalletProvider';
 import { formatBitcoinAddress, formatSolanaAddress } from '@/utils/format';
 import { Ionicons } from '@expo/vector-icons';
 import { PublicKey } from '@solana/web3.js';
@@ -9,7 +10,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Easing, Modal, Platform, Animated as RNAnimated, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-
 const CARD_RADIUS = 36;
 const baseCard = {
   borderRadius: CARD_RADIUS,
@@ -208,6 +208,9 @@ function CameraModal({
 }
 
 export default function PayScreen() {
+
+  const { sendBitcoin } = useBitcoinWallet();
+  
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -317,9 +320,11 @@ export default function PayScreen() {
         shortAddress,
         amount,
         currency,
-        onSend: () => {
+        onSend: async () => {
+          const signature = await sendBitcoin(address!, Number(amount) * 100000000);
           setShowCamera(false);
-          router.push({ pathname: '/transactions', params: { recipient: barcode.data, amount, currency } });
+          console.log('signature', signature);
+          router.push({ pathname: '/transactions', params: { recipient: address, amount, currency, signature } });
         },
         onCancel: () => setScanned(false),
       });
@@ -342,8 +347,9 @@ export default function PayScreen() {
         amount: enteredAmount,
         currency,
         onSend: () => {
+          sendBitcoin(address!, Number(enteredAmount) * 100000000);
           setShowCamera(false);
-          router.push({ pathname: '/transactions', params: { recipient: pendingBarcode, amount: enteredAmount, currency } });
+          router.push({ pathname: '/transactions', params: { recipient: address, amount: enteredAmount, currency } });
         },
         onCancel: () => setScanned(false),
       });

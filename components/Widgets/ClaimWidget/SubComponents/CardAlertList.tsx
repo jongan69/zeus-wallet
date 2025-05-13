@@ -2,7 +2,7 @@ import { ExternalLink } from "@/components/ui/ExternalLink";
 import { ThemedText as Text } from "@/components/ui/ThemedText";
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/hooks/theme/useTheme";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Image, StyleSheet, View } from "react-native";

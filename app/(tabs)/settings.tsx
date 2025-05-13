@@ -1,6 +1,6 @@
 import { ThemedText as Text } from '@/components/ui/ThemedText';
 import { ThemedView as View } from '@/components/ui/ThemedView';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/hooks/theme/useTheme';
 import React, { useState } from 'react';
 import {
     Linking,

@@ -7,7 +7,7 @@ import React, { useState } from "react";
 import { Button, StyleSheet, View } from "react-native";
 
 import Icon from "@/components/ui/Icons";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/hooks/theme/useTheme";
 import RedeemModal from "../Modals/Redeem";
 
 const PortfolioDetails = ({

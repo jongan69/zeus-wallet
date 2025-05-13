@@ -4,7 +4,7 @@
  */
 
 import { Colors } from '@/constants/Colors';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/hooks/theme/useTheme';
 
 export function useThemeColor(
   props: { light?: string; dark?: string },

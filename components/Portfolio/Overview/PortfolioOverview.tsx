@@ -9,7 +9,7 @@ import usePositions from "@/hooks/zpl/usePositions";
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
 import { useTbtcBalance } from "@/hooks/misc/useTbtcBalance";
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/hooks/theme/useTheme";
 import PortfolioBalance from "./PortfolioBalance";
 import PortfolioDetails from "./PortfolioDetails";
 

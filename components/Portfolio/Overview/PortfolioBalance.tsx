@@ -6,7 +6,7 @@ import { BigNumber } from "bignumber.js";
 import React from "react";
 import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from "@/hooks/theme/useTheme";
 import PortfolioPieChart from "./PortfolioPieChart";
 
 const { width } = Dimensions.get("window");
