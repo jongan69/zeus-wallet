@@ -6,13 +6,13 @@
 
 ## Abstract
 
-Zeus Wallet is a cross-chain mobile application that enables seamless payments between the Bitcoin and Solana ecosystems. It empowers users to send payments using any Solana token (e.g., USDC, BONK, WIF), while allowing merchants to receive native BTC. Built on the Zeus Program Library (ZPL), Zeus Wallet combines the high throughput and low fees of Solana with the liquidity and security of Bitcoin. This document outlines the architecture, functionality, and technical design of the wallet.
+Zeus Wallet is a cross-chain mobile application that enables seamless payments between the Bitcoin and Solana ecosystems. It aims to empower users to send payments using any Solana token (e.g., USDC, BONK, WIF), while allowing merchants to receive native BTC. Built on the Zeus Program Library (ZPL), Zeus Wallet combines the high throughput and low fees of Solana with the liquidity and security of Bitcoin. This document outlines the architecture, functionality, and technical design of the wallet.
 
 ---
 
 ## Features
 
-- **Multi-token Solana Payments**: Pay using any SPL token (e.g., USDC, BONK, WIF)
+- **Multi-token Solana Payments**: Pay using any SPL token (e.g., zBTC, USDC, BONK, WIF)
 - **Automatic Conversion**: In-app token swap to zBTC using DEX aggregators (zBTC support coming soon)
 - **BTC Settlement**: Merchants receive native BTC via the bridge (withdrawal flow implemented; minting and full bridge branding in development)
 - **QR Code Support**: Scan & pay using Solana Pay and BIP21 QR formats
@@ -40,7 +40,7 @@ Zeus Wallet is a cross-chain mobile application that enables seamless payments b
 
 Users initiate payments in any supported SPL token:
 - Meme coins (e.g., BONK, WIF)
-- Stablecoins (e.g., USDC, UXD)
+- Stablecoins (e.g., USDC)
 - zBTC (coming soon)
 
 ### 2. Convert to zBTC
