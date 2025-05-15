@@ -16,7 +16,7 @@ const fetchZplProgramIdsAndAssetMint = async (bootstrapperProgramId: string, gua
     bitcoinSpvProgramId?: string;
     layerCaProgramId?: string;
   };
-  console.log("ids", ids);
+  // console.log("ids", ids);
   return {
     twoWayPegProgramId: ids.twoWayPegProgramId,
     liquidityManagementProgramId: ids.liquidityManagementProgramId,

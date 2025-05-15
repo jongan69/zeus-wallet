@@ -273,7 +273,7 @@ export class AccountService {
 
   async getColdReserveBuckets() {
     console.log("[getColdReserveBuckets] called");
-    console.log("[getColdReserveBuckets] this.twoWayPegProgramId", this.twoWayPegProgramId.toBase58());
+    // console.log("[getColdReserveBuckets] this.twoWayPegProgramId", this.twoWayPegProgramId.toBase58());
     
     const filters = [
       {
@@ -291,13 +291,17 @@ export class AccountService {
       { filters }
     );
 
+    // console.log("[getColdReserveBuckets] accounts length:", accounts.length);
+
     const accountsData = accounts
       .map((account) => {
         const { data } = account.account;
         return deserializeColdReserveBucket(account.pubkey, data.subarray(8));
       })
-      .toSorted((a, b) => b.createdAt.cmp(a.createdAt))
+      .slice()
+      .sort((a, b) => b.createdAt.cmp(a.createdAt))
       .reduce((acc, current) => {
+        // console.log("[getColdReserveBuckets] current", current);
         if (
           !acc.some(
             (item) =>

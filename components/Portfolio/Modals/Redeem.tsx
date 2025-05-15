@@ -7,19 +7,22 @@ import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { BigNumber } from "bignumber.js";
 import { BN } from "bn.js";
 import React, { useState } from "react";
-import { Button, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Button, Modal, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
+import Icon from "@/components/ui/Icons";
+import { ThemedText } from "@/components/ui/ThemedText";
+import { ThemedView } from "@/components/ui/ThemedView";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
 import { useZplClient } from "@/contexts/ZplClientProvider";
 import useBalance from "@/hooks/misc/useBalance";
 import { useNetworkConfig } from "@/hooks/misc/useNetworkConfig";
+import { useThemeColor } from "@/hooks/theme/useThemeColor";
 import usePositions from "@/hooks/zpl/usePositions";
+import usePersistentStore from "@/stores/persistentStore";
 import { Chain } from "@/types/network";
 import { Position } from "@/types/zplClient";
 import { BTC_DECIMALS } from "@/utils/constant";
 import { notifyError, notifyTx } from "@/utils/notification";
-import usePersistentStore from "@/stores/persistentStore";
-import Icon from "@/components/ui/Icons";
 
 
 function calcInputValue(inputValue: string, decimals: number) {
@@ -199,44 +202,50 @@ export default function RedeemModal({
     }
   };
 
+  const secondaryText = useThemeColor({ light: '#888', dark: '#9BA1A6' }, 'icon');
+  const inputBorder = useThemeColor({ light: '#ccc', dark: '#444' }, 'icon');
+  const maxTextColor = useThemeColor({ light: '#007bff', dark: '#4F8EF7' }, 'tint');
+  const modalBg = useThemeColor({ light: '#fff', dark: '#151718' }, 'background');
+  const infoLabelColor = useThemeColor({ light: '#666', dark: '#9BA1A6' }, 'icon');
+  const infoValueColor = useThemeColor({ light: '#333', dark: '#ECEDEE' }, 'text');
+
   return (
     <Modal visible={isOpen} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
+      <ThemedView style={styles.modalContainer}>
+        <ThemedView style={[styles.modalContent, { backgroundColor: modalBg }] }>
           {/* Header */}
           <View style={styles.header}>
             <Icon name="Withdraw01" size={18} />
-            <Text style={styles.headerText}>Redeem zBTC</Text>
+            <ThemedText style={styles.headerText}>Redeem zBTC</ThemedText>
           </View>
 
           {/* Input */}
           <View style={styles.inputRow}>
             <TextInput
-              style={[styles.input, errorMessage && styles.inputError]}
+              style={[styles.input, { borderColor: inputBorder, color: secondaryText }, errorMessage && styles.inputError]}
               keyboardType="decimal-pad"
               placeholder="0.000000"
+              placeholderTextColor={secondaryText}
               value={redeemAmount}
               onChangeText={(text) => handleChange(text, 6)}
             />
             <TouchableOpacity onPress={handleMax}>
-              <Text style={styles.maxText}>Max</Text>
+              <ThemedText style={[styles.maxText, { color: maxTextColor }]}>Max</ThemedText>
             </TouchableOpacity>
           </View>
-          {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-          <Text style={styles.secondaryValue}>
-            ~${Number(redeemAmount) > 0 ? (Number(redeemAmount) * btcPrice).toFixed(2) : "0"}
-          </Text>
+          {errorMessage ? <ThemedText style={styles.errorText}>{errorMessage}</ThemedText> : null}
+          <ThemedText style={[styles.secondaryValue, { color: secondaryText }]}>~${Number(redeemAmount) > 0 ? (Number(redeemAmount) * btcPrice).toFixed(2) : "0"}</ThemedText>
 
           {/* Info */}
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Available In</Text>
-            <Text style={styles.infoValue}>~ 1 minute</Text>
+            <ThemedText style={[styles.infoLabel, { color: infoLabelColor }]}>Available In</ThemedText>
+            <ThemedText style={[styles.infoValue, { color: infoValueColor }]}>~ 1 minute</ThemedText>
           </View>
           <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Remaining zBTC</Text>
-            <Text style={styles.infoValue}>
+            <ThemedText style={[styles.infoLabel, { color: infoLabelColor }]}>Remaining zBTC</ThemedText>
+            <ThemedText style={[styles.infoValue, { color: infoValueColor }]}>
               {Math.max(balance - Number(redeemAmount), 0).toFixed(6)} zBTC <Icon name="Lock" size={18} />
-            </Text>
+            </ThemedText>
           </View>
 
           {/* Actions */}
@@ -247,8 +256,8 @@ export default function RedeemModal({
             disabled={!!errorMessage || !redeemAmount}
           />
           <Button title="Close" onPress={onClose} />
-        </View>
-      </View>
+        </ThemedView>
+      </ThemedView>
     </Modal>
   );
 }

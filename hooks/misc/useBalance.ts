@@ -1,8 +1,10 @@
 import "../../polyfills";
+
 import { getAccount, getAssociatedTokenAddress } from "@solana/spl-token";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { BigNumber } from "bignumber.js";
 import useSWR from "swr";
+
 
 
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
@@ -27,8 +29,8 @@ const useBalance = (solanaPubkey: PublicKey | null) => {
   const { connection } = useSolanaWallet();
   const zplClient = useZplClient();
   const { data, isLoading, mutate } = useSWR<BigNumber>(
-    solanaPubkey && connection
-      ? [solanaPubkey.toBase58(), connection, zplClient?.assetMint, "balance"]
+    solanaPubkey && connection && zplClient?.assetMint
+      ? [solanaPubkey.toBase58(), connection, zplClient.assetMint, "balance"]
       : null,
     async ([pubkeyStr, conn, mint]: [string, Connection, string]) =>
       balanceFetcher(new PublicKey(pubkeyStr), conn, new PublicKey(mint)),
@@ -38,7 +40,7 @@ const useBalance = (solanaPubkey: PublicKey | null) => {
       dedupingInterval: 30000,
     }
   );
-
+  console.log("[useBalance] data", data, solanaPubkey, connection, zplClient?.assetMint);
   return {
     data: data ?? new BigNumber(0),
     isLoading,

@@ -34,9 +34,9 @@ const useHotReserveBucketActions = (bitcoinWallet: BitcoinWallet | null) => {
       console.warn("[createHotReserveBucket] Missing zplClient, bitcoinWallet, or solanaPubkey", { zplClient, bitcoinWallet, solanaPubkey });
       return;
     }
-    console.log(`\n[createHotReserveBucket] zplClient`, zplClient);
-    console.log(`\n[createHotReserveBucket] networkConfig`, networkConfig);
-    console.log(`\n[createHotReserveBucket] twoWayPegGuardianSettings`, twoWayPegGuardianSettings);
+    // console.log(`\n[createHotReserveBucket] zplClient`, zplClient);
+    // console.log(`\n[createHotReserveBucket] networkConfig`, networkConfig);
+    // console.log(`\n[createHotReserveBucket] twoWayPegGuardianSettings`, twoWayPegGuardianSettings);
     const selectedGuardian = twoWayPegGuardianSettings[0];
     console.log(`\n[createHotReserveBucket] selectedGuardian`, selectedGuardian);
 
@@ -136,8 +136,7 @@ const useHotReserveBucketActions = (bitcoinWallet: BitcoinWallet | null) => {
     bitcoinNetwork,
     solanaNetwork,
     coldReserveBuckets,
-    twoWayPegGuardianSettings,
-    networkConfig
+    twoWayPegGuardianSettings
   ]);
 
   const reactivateHotReserveBucket = useCallback(async () => {
@@ -196,7 +195,7 @@ const useHotReserveBucketActions = (bitcoinWallet: BitcoinWallet | null) => {
   }, [zplClient, bitcoinWallet, solanaNetwork, networkConfig.guardianSetting]);
 
   const checkHotReserveBucketStatus = useCallback(async () => {
-    console.log("[checkHotReserveBucketStatus] called");
+    // console.log("[checkHotReserveBucketStatus] called");
     if (!zplClient || !solanaPubkey) {
       console.warn("[checkHotReserveBucketStatus] Missing zplClient or solanaPubkey", { zplClient, solanaPubkey });
       return;
@@ -204,7 +203,7 @@ const useHotReserveBucketActions = (bitcoinWallet: BitcoinWallet | null) => {
 
     const userBitcoinXOnlyPublicKey =
       getInternalXOnlyPubkeyFromUserWallet(bitcoinWallet);
-    console.log("[checkHotReserveBucketStatus] userBitcoinXOnlyPublicKey", userBitcoinXOnlyPublicKey);
+    // console.log("[checkHotReserveBucketStatus] userBitcoinXOnlyPublicKey", userBitcoinXOnlyPublicKey);
 
     if (!userBitcoinXOnlyPublicKey) {
       console.warn("[checkHotReserveBucketStatus] Can't get x-only publickey");
@@ -215,7 +214,7 @@ const useHotReserveBucketActions = (bitcoinWallet: BitcoinWallet | null) => {
       await zplClient.getHotReserveBucketsByBitcoinXOnlyPubkey(
         userBitcoinXOnlyPublicKey
       );
-    console.log("[checkHotReserveBucketStatus] hotReserveBuckets", hotReserveBuckets);
+    // console.log("[checkHotReserveBucketStatus] hotReserveBuckets", hotReserveBuckets);
 
     if (hotReserveBuckets.length === 0)
       return { status: CheckBucketResult.NotFound };

@@ -1,4 +1,4 @@
-import { btcToSatoshi, constructDepositToHotReserveTx, convertBitcoinNetwork, satoshiToBtc } from "@/bitcoin";
+import { btcToSatoshi, constructDepositToHotReserveTx, convertBitcoinNetwork } from "@/bitcoin";
 import { getInternalXOnlyPubkeyFromUserWallet } from "@/bitcoin/wallet";
 import Button from "@/components/ui/Button/Button";
 import Icon from "@/components/ui/Icons";
@@ -7,23 +7,24 @@ import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
 import { useZplClient } from "@/contexts/ZplClientProvider";
 import useBitcoinUTXOs from "@/hooks/ares/useBitcoinUTXOs";
-import useTwoWayPegGuardianSettings from "@/hooks/hermes/useTwoWayPegGuardianSettings";
 import { useNetworkConfig } from "@/hooks/misc/useNetworkConfig";
-import useColdReserveBuckets from "@/hooks/zpl/useColdReserveBuckets";
 import useHotReserveBucketActions from "@/hooks/zpl/useHotReserveBucketActions";
-import useTwoWayPegConfiguration from "@/hooks/zpl/useTwoWayPegConfiguration";
+// import useTwoWayPegConfiguration from "@/hooks/zpl/useTwoWayPegConfiguration";
 import usePersistentStore from "@/stores/persistentStore";
 import { InteractionType } from "@/types/api";
 import { CheckBucketResult } from "@/types/misc";
 import { Chain } from "@/types/network";
 import { Position } from "@/types/zplClient";
 import { BTC_DECIMALS } from "@/utils/constant";
-import { getEstimatedLockToColdTransactionFee } from "@/utils/interaction";
+// import { getEstimatedLockToColdTransactionFee } from "@/utils/interaction";
+import { ThemedText } from "@/components/ui/ThemedText";
+import { ThemedView } from "@/components/ui/ThemedView";
+import { useThemeColor } from "@/hooks/theme/useThemeColor";
 import { notifyTx } from "@/utils/notification";
 import { BigNumber } from "bignumber.js";
 import { payments } from "bitcoinjs-lib";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Modal as RNModal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Modal as RNModal, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 export interface DepositModalProps {
     isOpen: boolean;
@@ -66,22 +67,27 @@ export default function DepositModal({
     const [inputAmount, setInputAmount] = useState("");
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
-    const { feeRate } = useTwoWayPegConfiguration();
+    // const { feeRate } = useTwoWayPegConfiguration();
 
-    const { checkHotReserveBucketStatus, createHotReserveBucket, reactivateHotReserveBucket } = useHotReserveBucketActions(bitcoinWallet);
-    const { data: twoWayPegGuardianSettings } = useTwoWayPegGuardianSettings();
-    const { data: coldReserveBuckets } = useColdReserveBuckets();
+    const { checkHotReserveBucketStatus, createHotReserveBucket } = useHotReserveBucketActions(bitcoinWallet);
+    // const { data: twoWayPegGuardianSettings } = useTwoWayPegGuardianSettings();
+    // const { data: coldReserveBuckets } = useColdReserveBuckets();
 
-    console.log("[DepositModal] twoWayPegGuardianSettings", twoWayPegGuardianSettings);
-    console.log("[DepositModal] coldReserveBuckets", coldReserveBuckets);
-    const estimatedLockToColdFeeInSatoshis = getEstimatedLockToColdTransactionFee(feeRate);
-    const estimatedLockToColdFeeInBtc = satoshiToBtc(estimatedLockToColdFeeInSatoshis);
+    // console.log("[DepositModal] twoWayPegGuardianSettings", twoWayPegGuardianSettings);
+    // console.log("[DepositModal] coldReserveBuckets", coldReserveBuckets);
+    // const estimatedLockToColdFeeInSatoshis = getEstimatedLockToColdTransactionFee(feeRate);
+    // const estimatedLockToColdFeeInBtc = satoshiToBtc(estimatedLockToColdFeeInSatoshis);
 
-    
+    const noticeBackground = useThemeColor({ light: '#FFF3F0', dark: '#2D2320' }, 'background');
+    const noticeText = useThemeColor({ light: '#333', dark: '#ECEDEE' }, 'text');
+    const secondaryText = useThemeColor({ light: '#888', dark: '#9BA1A6' }, 'icon');
+    const inputBorder = useThemeColor({ light: '#ccc', dark: '#444' }, 'icon');
+    const maxTextColor = useThemeColor({ light: '#007bff', dark: '#4F8EF7' }, 'tint');
+
     useEffect(() => {
         const check = async () => {
             const check = await checkHotReserveBucketStatus();
-            console.log("[DepositModal] checkHotReserveBucketStatus", check);
+            // console.log("[DepositModal] checkHotReserveBucketStatus", check);
             if (check?.status === CheckBucketResult.NotFound) {
                 setShowCreateAccountModal(true);
             }
@@ -186,7 +192,8 @@ export default function DepositModal({
             }
             try {
                 console.log("[DepositModal] Signing PSBT", depositPsbt);
-                await signPsbt(depositPsbt, true);
+                const signedPsbt = await signPsbt(depositPsbt, true);
+                console.log("[DepositModal] Signed PSBT", signedPsbt);
                 // TODO: send transaction to backend and update local state as in web modal
                 setTimeout(async () => {
                     console.log("[DepositModal] Updating transactions after deposit");
@@ -227,7 +234,8 @@ export default function DepositModal({
             console.log("[CreateAccount] Account created, closing modal");
             setShowCreateAccountModal(false);
             console.log("[CreateAccount] Re-triggering deposit flow");
-            await handleConfirmDeposit();
+            
+            setIsDepositing(true);
         } catch (e) {
             console.log("[CreateAccount] Error:", e);
             setErrorMessage("Failed to create account. Please try again. Error: " + e);
@@ -238,13 +246,13 @@ export default function DepositModal({
 
     return (
         <RNModal visible={isOpen || showCreateAccountModal} transparent animationType="slide" onRequestClose={onClose}>
-            <View style={styles.modalBackdrop}>
-                <View style={styles.modalContainer}>
+            <ThemedView style={styles.modalBackdrop}>
+                <ThemedView style={styles.modalContainer}>
                     {showCreateAccountModal ? (
                         <>
-                            <Text style={{ textAlign: "center", marginVertical: 24 }}>
+                            <ThemedText style={{ textAlign: "center", marginVertical: 24 }}>
                                 No hot reserve address found. You need to create an account to proceed.
-                            </Text>
+                            </ThemedText>
                             <Button label="Create Account" type="primary" onClick={handleCreateAccount} />
                             <View style={{ height: 10 }} />
                             <Button label="Cancel" type="secondary" onClick={() => setShowCreateAccountModal(false)} />
@@ -254,49 +262,42 @@ export default function DepositModal({
                             {/* Header */}
                             <View style={styles.header}>
                                 <Icon name="tbtc" size={18} />
-                                <Text style={styles.headerText}>Confirm Deposit</Text>
+                                <ThemedText style={styles.headerText}>Confirm Deposit</ThemedText>
                             </View>
                             {/* Asset Banner */}
-                            <DepositAssetBanner assetFrom={assetFrom} assetTo={assetTo} />
+                            <DepositAssetBanner assetFrom={assetFrom} assetTo={assetTo} secondaryText={secondaryText} />
                             {/* Input */}
                             <View style={styles.inputRow}>
                                 <TextInput
-                                    style={[styles.input, errorMessage && styles.inputError]}
+                                    style={[styles.input, { borderColor: inputBorder, color: secondaryText }, errorMessage && styles.inputError]}
                                     keyboardType="decimal-pad"
                                     placeholder="0.000000"
+                                    placeholderTextColor={secondaryText}
                                     value={inputAmount}
                                     onChangeText={(text) => handleChange(text, 6)}
                                 />
                                 <TouchableOpacity onPress={handleMax}>
-                                    <Text style={styles.maxText}>Max</Text>
+                                    <ThemedText style={[styles.maxText, { color: maxTextColor }]}>Max</ThemedText>
                                 </TouchableOpacity>
                             </View>
-                            <Text style={styles.availableText}>
-                                Available: {balance.toFixed(6)} BTC
-                            </Text>
-                            {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-                            <Text style={styles.secondaryValue}>
-                                ~${Number(inputAmount) > 0 ? (Number(inputAmount) * btcPrice).toFixed(2) : "0"}
-                            </Text>
+                            <ThemedText style={[styles.availableText, { color: secondaryText }]}>Available: {balance.toFixed(6)} BTC</ThemedText>
+                            {errorMessage ? <ThemedText style={styles.errorText}>{errorMessage}</ThemedText> : null}
+                            <ThemedText style={[styles.secondaryValue, { color: secondaryText }]}>~${Number(inputAmount) > 0 ? (Number(inputAmount) * btcPrice).toFixed(2) : "0"}</ThemedText>
                             {/* Transaction Fee */}
                             <View style={styles.feeSection}>
-                                <Text style={styles.feeLabel}>Transaction Fee</Text>
+                                <ThemedText style={styles.feeLabel}>Transaction Fee</ThemedText>
                                 <View style={styles.feeRow}>
-                                    <Text>Miner Fee</Text>
-                                    <Text>
-                                        {new BigNumber(minerFee).dividedBy(10 ** BTC_DECIMALS).toFixed(6)} BTC
-                                    </Text>
+                                    <ThemedText>Miner Fee</ThemedText>
+                                    <ThemedText>{new BigNumber(minerFee).dividedBy(10 ** BTC_DECIMALS).toFixed(6)} BTC</ThemedText>
                                 </View>
                             </View>
                             {/* Notice */}
-                            <View style={styles.noticeBox}>
+                            <View style={[styles.noticeBox, { backgroundColor: noticeBackground }] }>
                                 <View style={styles.noticeHeader}>
                                     <Icon name="Alert" size={18} />
-                                    <Text style={styles.noticeTitle}>Notice</Text>
+                                    <ThemedText style={[styles.noticeTitle, { color: '#F59E42' }]}>Notice</ThemedText>
                                 </View>
-                                <Text style={styles.noticeText}>
-                                    Deposits may take up to 24 hours to complete based on Bitcoin network conditions.
-                                </Text>
+                                <ThemedText style={[styles.noticeText, { color: noticeText }]}>Deposits may take up to 24 hours to complete based on Bitcoin network conditions.</ThemedText>
                             </View>
                             {/* Actions */}
                             <View style={styles.actions}>
@@ -311,31 +312,31 @@ export default function DepositModal({
                             </View>
                         </>
                     )}
-                </View>
-            </View>
+                </ThemedView>
+            </ThemedView>
         </RNModal>
     );
 }
 
-function DepositAssetBanner({ assetFrom, assetTo }: { assetFrom: { name: string; amount: string; isLocked: boolean }; assetTo: { name: string; amount: string; isLocked: boolean } }) {
+function DepositAssetBanner({ assetFrom, assetTo, secondaryText }: { assetFrom: { name: string; amount: string; isLocked: boolean }; assetTo: { name: string; amount: string; isLocked: boolean }, secondaryText: string }) {
     return (
         <View style={styles.assetBanner}>
             {/* From */}
             <View style={styles.assetColumn}>
-                <Text style={styles.assetLabel}>Lock</Text>
+                <ThemedText style={[styles.assetLabel, { color: secondaryText }]}>Lock</ThemedText>
                 <View style={styles.assetRow}>
                     <Icon name={assetFrom.name.toLowerCase() as IconName} size={18} />
-                    <Text style={styles.assetAmount}>{assetFrom.amount} {assetFrom.name}</Text>
+                    <ThemedText style={styles.assetAmount}>{assetFrom.amount} {assetFrom.name}</ThemedText>
                     {assetFrom.isLocked && <Icon name={"Lock" as IconName} size={18} />}
                 </View>
             </View>
             <Icon name={"DoubleRight" as IconName} size={18} />
             {/* To */}
             <View style={styles.assetColumn}>
-                <Text style={styles.assetLabel}>Mint</Text>
+                <ThemedText style={[styles.assetLabel, { color: secondaryText }]}>Mint</ThemedText>
                 <View style={styles.assetRow}>
                     <Icon name={assetTo.name.toLowerCase() as IconName} size={18} />
-                    <Text style={styles.assetAmount}>{assetTo.amount} {assetTo.name}</Text>
+                    <ThemedText style={styles.assetAmount}>{assetTo.amount} {assetTo.name}</ThemedText>
                     {assetTo.isLocked && <Icon name={"Lock" as IconName} size={18} />}
                 </View>
             </View>
@@ -352,7 +353,6 @@ const styles = StyleSheet.create({
     },
     modalContainer: {
         width: 340,
-        backgroundColor: "#fff",
         borderRadius: 12,
         padding: 24,
         alignItems: "stretch",
@@ -371,7 +371,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        backgroundColor: "#F3F4F6",
         borderRadius: 12,
         padding: 16,
         marginVertical: 12,

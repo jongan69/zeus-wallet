@@ -115,9 +115,6 @@ export class ZplClient {
   }
 
   async getColdReserveBuckets() {
-    console.log("[getColdReserveBuckets] called");
-    console.log("[getColdReserveBuckets] this.accountService", this.accountService);
-    console.log("[getColdReserveBuckets] this.accountService.getColdReserveBuckets()", this.accountService.getColdReserveBuckets());
     return this.accountService.getColdReserveBuckets();
   }
 
