@@ -1,7 +1,6 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   Animated,
-  Dimensions,
   PanResponder,
   Modal as RNModal,
   StyleProp,
@@ -51,6 +50,7 @@ export default function Modal({
   cardStyle,
 }: ModalProps) {
   const pan = useRef(new Animated.Value(0)).current;
+  const [modalSize, setModalSize] = useState({ width: 0, height: 0 });
 
   // Optional: Swipe down to close for drawer modals
   const panResponder = PanResponder.create({
@@ -89,9 +89,21 @@ export default function Modal({
         />
       )}
       <Animated.View
+        onLayout={e => {
+          const { width, height } = e.nativeEvent.layout;
+          setModalSize({ width, height });
+        }}
         style={[
           styles.modalCard,
-          isCentered && styles.centered,
+          isCentered && {
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: [
+              { translateX: -modalSize.width / 2 },
+              { translateY: -modalSize.height / 2 }
+            ]
+          },
           isDrawer && {
             position: "absolute",
             bottom: 0,
@@ -144,12 +156,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 2 },
-  },
-  centered: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: [{ translateX: -Dimensions.get("window").width / 2 }, { translateY: -100 }],
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: 'center'
   },
   container: {
     width: "100%",

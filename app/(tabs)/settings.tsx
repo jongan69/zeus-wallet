@@ -152,7 +152,7 @@ const SecurityTab = () => {
         </View>
       </Section>
       {/* Export Private Key Modal */}
-      <Modal isOpen={showExportModal} onClose={() => setShowExportModal(false)} isCentered>
+      <Modal isOpen={showExportModal} onClose={() => setShowExportModal(false)} isCentered={true}>
         <ModalHeader title="Export Private Key" onBtnClick={() => setShowExportModal(false)} />
         <Text style={{ marginBottom: 12, color: '#d9534f', fontWeight: 'bold' }}>Warning: Never share your private key with anyone.</Text>
         {privateKey ? (
@@ -165,7 +165,7 @@ const SecurityTab = () => {
         )}
       </Modal>
       {/* Reset Wallet Modal */}
-      <Modal isOpen={showResetModal} onClose={() => setShowResetModal(false)} isCentered>
+      <Modal isOpen={showResetModal} onClose={() => setShowResetModal(false)} isCentered={true}>
         <ModalHeader title="Reset Wallet" onBtnClick={() => setShowResetModal(false)} />
         <Text style={{ marginBottom: 16, color: '#d9534f', fontWeight: 'bold' }}>Are you sure you want to reset your wallet? This action cannot be undone.</Text>
         <ThemedButton title={resetting ? 'Resetting...' : 'Yes, Reset Wallet'} onPress={handleReset} disabled={resetting} />
