@@ -4,13 +4,19 @@ import "../polyfills";
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import React from 'react';
+import Toast from 'react-native-toast-message';
+
 
 import { BitcoinWalletProvider } from '@/contexts/BitcoinWalletProvider';
 import { SolanaWalletProvider } from '@/contexts/SolanaWalletProvider';
-import { ZplClientProvider } from '@/contexts/ZplClientProvider';
 import { ThemeProvider } from '@/contexts/ThemeProvider';
-import React from 'react';
+import { ZplClientProvider } from '@/contexts/ZplClientProvider';
 
+export const unstable_settings = {
+  // Ensure any route can link back to `/`
+  initialRouteName: 'welcome',
+};
 export default function Layout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -28,10 +34,12 @@ export default function Layout() {
           <BitcoinWalletProvider>
 
             <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
+              <Stack.Screen name="welcome" />
+              <Stack.Screen name="(tabs)" />
               <Stack.Screen name="+not-found" />
             </Stack>
             <StatusBar style="auto" />
+            <Toast />
 
           </BitcoinWalletProvider>
         </ZplClientProvider>

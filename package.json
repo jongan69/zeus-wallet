@@ -10,7 +10,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "check-address": "node scripts/checkGuardianSettingAssetMint.js"
+    "check-address": "node scripts/checkGuardianSettingAssetMint.js",
+    "knip": "knip"
   },
   "dependencies": {
     "@bitcoinerlab/secp256k1": "^1.2.0",
@@ -38,6 +39,7 @@
     "expo": "~53.0.9",
     "expo-blur": "~14.1.4",
     "expo-camera": "^16.1.6",
+    "expo-clipboard": "~7.1.4",
     "expo-constants": "~17.1.6",
     "expo-crypto": "^14.1.4",
     "expo-font": "~13.3.1",
@@ -72,8 +74,7 @@
     "swr": "^2.3.3",
     "text-encoding": "^0.7.0",
     "tweetnacl": "^1.0.3",
-    "zustand": "^5.0.4",
-    "expo-clipboard": "~7.1.4"
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -85,6 +86,7 @@
     "@types/react": "~19.0.10",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
+    "knip": "^5.56.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.3"
   },

@@ -107,7 +107,7 @@ export default function ClaimWidget() {
   return (
     <View style={styles.claimWidget}>
       <View style={styles.claimWidgetCard}>
-        <Animated.View style={[styles.cardContent, { opacity: fadeAnim }]}>
+        <Animated.View style={{ opacity: fadeAnim }}>
           <View style={styles.cardAlert}>
             <CardActionsHeader />
             <CardAlertList />
@@ -121,11 +121,6 @@ export default function ClaimWidget() {
           />
         </Animated.View>
       </View>
-      {/* <SuccessfulClaim
-        claimedAmount={satoshiToBtc(CLAIM_AMOUNT_LIMIT)}
-        onClose={() => {}}
-        onTryStaking={() => {}}
-      /> */}
     </View>
   );
 }
@@ -135,16 +130,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    // paddingBottom: '5%',
   },
   claimWidgetCard: {
     borderRadius: 12,
-    padding: 16,
-    margin: 16,
-    
-  },
-  cardContent: {
+    padding: 10,
+    margin: 10,
+
   },
   cardAlert: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
 });

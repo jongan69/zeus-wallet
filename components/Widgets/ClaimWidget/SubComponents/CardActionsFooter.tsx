@@ -1,6 +1,8 @@
 import Icon from "@/components/ui/Icons";
 import { ThemedText as Text } from "@/components/ui/ThemedText";
 import Button from "@/components/ui/WalletButton/Button";
+import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
+import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
 import React from "react";
 import { Animated, StyleSheet, View } from "react-native";
 export default function CardActionsFooter({
@@ -16,18 +18,24 @@ export default function CardActionsFooter({
   isClaiming: boolean;
   isAllConnected: boolean;
 }) {
+  const { connectDerivedWallet: connectBitcoinWallet } = useBitcoinWallet();
+  const { login } = useSolanaWallet();
+
+  const connectWallets = async () => {
+    await login();
+    await connectBitcoinWallet();
+  }
   const isFullyClaimed = isAllConnected && claimableTimes === 0;
 
   return (
     <View style={styles.actionsContainer}>
       <Button
-        icon={!isAllConnected && <Icon name="Wallet" />}
         theme="primary"
         size="lg"
         label={isFullyClaimed ? "Fully Claimed" : "Claim"}
         solanaWalletRequired={!isFullyClaimed}
         bitcoinWalletRequired={!isFullyClaimed}
-        onClick={!isFullyClaimed ? handleClaim : undefined}
+        onClick={!isFullyClaimed ? handleClaim : connectWallets}
         isLoading={!isFullyClaimed && isClaiming}
         disabled={isFullyClaimed}
       />
@@ -58,7 +66,7 @@ export default function CardActionsFooter({
 
 const styles = StyleSheet.create({
   actionsContainer: {
-    width: "100%",
+
     alignItems: "center",
     paddingVertical: 10,
     paddingHorizontal: 0,
@@ -72,10 +80,10 @@ const styles = StyleSheet.create({
     marginBottom: 100,
   },
   claimInfoContainer: {
-    marginTop: 20,
+    marginTop: 10,
     width: "100%",
     alignItems: "center",
-   
+
   },
   claimInfoTitleRow: {
     flexDirection: "row",

@@ -5,6 +5,9 @@ import { useFetchers } from "./useFetchers";
 
 const fetchClaimableAmount = async (bitcoinAddress: string, aegleFetcher: any) => {
     try {
+      if (!bitcoinAddress) {
+        return 0;
+      }
       // console.log("[fetchClaimableAmount] Called");
       const response = await aegleFetcher(
         `api/v1/bitcoin-regtest-wallet/${bitcoinAddress}`,

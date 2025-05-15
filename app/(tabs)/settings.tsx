@@ -1,16 +1,25 @@
-import { ThemedText as Text } from '@/components/ui/ThemedText';
-import { ThemedView as View } from '@/components/ui/ThemedView';
-import { useTheme } from '@/hooks/theme/useTheme';
 import React, { useState } from 'react';
 import {
-    Linking,
-    ScrollView,
-    StyleSheet,
-    Switch,
-
-    useWindowDimensions,
+  Alert,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  useWindowDimensions,
 } from 'react-native';
+
+import Modal from '@/components/ui/Modal/Modal';
+import ModalHeader from '@/components/ui/Modal/ModalHeader';
+import { ThemedButton } from '@/components/ui/ThemedButton';
+import { ThemedText as Text } from '@/components/ui/ThemedText';
+import { ThemedView as View } from '@/components/ui/ThemedView';
+import { useSolanaWallet, WalletService } from '@/contexts/SolanaWalletProvider';
+import { useTheme } from '@/hooks/theme/useTheme';
+
+import * as Clipboard from 'expo-clipboard';
+import { router } from 'expo-router';
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
+import Toast from 'react-native-toast-message';
 
 const Section = ({ title, children }: { title: string, children: React.ReactNode }) => (
   <View style={styles.section}>
@@ -42,6 +51,50 @@ const GeneralTab = () => {
 
 const SecurityTab = () => {
   const { theme } = useTheme();
+  const { exportPrivateKey, logout } = useSolanaWallet();
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [privateKey, setPrivateKey] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
+
+  const handleExport = async () => {
+    setExportError(null);
+    try {
+      const key = await exportPrivateKey();
+      setPrivateKey(key);
+      setShowExportModal(true);
+    } catch (e) {
+      setExportError('Failed to export private key: ' + e);
+    }
+  };
+
+  const handleCopy = () => {
+    if (privateKey) {
+      Clipboard.setString(privateKey);
+      Alert.alert('Copied', 'Private key copied to clipboard.');
+    }
+  };
+
+  const handleReset = async () => {
+    setResetting(true);
+    try {
+      await logout();
+      const wallet = await WalletService.loadWallet();
+      console.log('wallet', wallet);
+      setShowResetModal(false);
+      Toast.show({
+        text1: 'Wallet reset!',
+        type: 'success',
+      });
+    } catch (e) {
+      Alert.alert('Error', 'Failed to reset wallet: ' + e);
+    } finally {
+      setResetting(false);
+      router.replace('/welcome');
+    }
+  };
+
   return (
     <ScrollView style={[styles.tabContent, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}>
       <Section title="Security Settings">
@@ -53,7 +106,33 @@ const SecurityTab = () => {
           <Text style={styles.label}>Auto-Lock After 1 Minute</Text>
           <Switch value={true} disabled />
         </View>
+        <View style={{ marginTop: 24 }}>
+          <ThemedButton title="Export Wallet Private Key" onPress={handleExport} />
+        </View>
+        <View style={{ marginTop: 12 }}>
+          <ThemedButton title="Reset Wallet" onPress={() => setShowResetModal(true)} />
+        </View>
       </Section>
+      {/* Export Private Key Modal */}
+      <Modal isOpen={showExportModal} onClose={() => setShowExportModal(false)} isCentered>
+        <ModalHeader title="Export Private Key" onBtnClick={() => setShowExportModal(false)} />
+        <Text style={{ marginBottom: 12, color: '#d9534f', fontWeight: 'bold' }}>Warning: Never share your private key with anyone.</Text>
+        {privateKey ? (
+          <>
+            <Text selectable style={{ marginBottom: 16, fontSize: 14 }}>{privateKey}</Text>
+            <ThemedButton title="Copy to Clipboard" onPress={handleCopy} />
+          </>
+        ) : (
+          <Text style={{ color: 'red' }}>{exportError || 'No private key found.'}</Text>
+        )}
+      </Modal>
+      {/* Reset Wallet Modal */}
+      <Modal isOpen={showResetModal} onClose={() => setShowResetModal(false)} isCentered>
+        <ModalHeader title="Reset Wallet" onBtnClick={() => setShowResetModal(false)} />
+        <Text style={{ marginBottom: 16, color: '#d9534f', fontWeight: 'bold' }}>Are you sure you want to reset your wallet? This action cannot be undone.</Text>
+        <ThemedButton title={resetting ? 'Resetting...' : 'Yes, Reset Wallet'} onPress={handleReset} disabled={resetting} />
+        <ThemedButton title="Cancel" onPress={() => setShowResetModal(false)} style={{ marginTop: 8 }} />
+      </Modal>
     </ScrollView>
   );
 };

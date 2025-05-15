@@ -1,30 +1,35 @@
-import { btcToSatoshi, constructDepositToHotReserveTx, convertBitcoinNetwork } from "@/bitcoin";
-import { getInternalXOnlyPubkeyFromUserWallet } from "@/bitcoin/wallet";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Modal as RNModal, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
+
 import Button from "@/components/ui/Button/Button";
 import Icon from "@/components/ui/Icons";
 import { IconName } from "@/components/ui/Icons/icons";
+import { ThemedText } from "@/components/ui/ThemedText";
+import { ThemedView } from "@/components/ui/ThemedView";
+
+import { btcToSatoshi, constructDepositToHotReserveTx, convertBitcoinNetwork } from "@/bitcoin";
+import { getInternalXOnlyPubkeyFromUserWallet } from "@/bitcoin/wallet";
+
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
 import { useZplClient } from "@/contexts/ZplClientProvider";
 import useBitcoinUTXOs from "@/hooks/ares/useBitcoinUTXOs";
 import { useNetworkConfig } from "@/hooks/misc/useNetworkConfig";
+import { useThemeColor } from "@/hooks/theme/useThemeColor";
 import useHotReserveBucketActions from "@/hooks/zpl/useHotReserveBucketActions";
-// import useTwoWayPegConfiguration from "@/hooks/zpl/useTwoWayPegConfiguration";
+
 import usePersistentStore from "@/stores/persistentStore";
 import { InteractionType } from "@/types/api";
 import { CheckBucketResult } from "@/types/misc";
 import { Chain } from "@/types/network";
 import { Position } from "@/types/zplClient";
 import { BTC_DECIMALS } from "@/utils/constant";
-// import { getEstimatedLockToColdTransactionFee } from "@/utils/interaction";
-import { ThemedText } from "@/components/ui/ThemedText";
-import { ThemedView } from "@/components/ui/ThemedView";
-import { useThemeColor } from "@/hooks/theme/useThemeColor";
+
 import { notifyTx } from "@/utils/notification";
 import { BigNumber } from "bignumber.js";
 import { payments } from "bitcoinjs-lib";
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Modal as RNModal, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+
 
 export interface DepositModalProps {
     isOpen: boolean;
@@ -184,6 +189,10 @@ export default function DepositModal({
                 );
                 depositPsbt = psbt;
                 console.log("[DepositModal] Constructed depositPsbt", depositPsbt);
+                Toast.show({
+                    text1: "Deposit transaction constructed!",
+                    type: "success",
+                });
             } catch (e) {
                 console.log("[DepositModal] Error constructing deposit transaction", e);
                 setErrorMessage(e instanceof Error ? e.message : "Failed to construct deposit transaction");
@@ -232,12 +241,20 @@ export default function DepositModal({
             }
             await createHotReserveBucket();
             console.log("[CreateAccount] Account created, closing modal");
+            Toast.show({
+                text1: "Account created!",
+                type: "success",
+            });
             setShowCreateAccountModal(false);
             console.log("[CreateAccount] Re-triggering deposit flow");
-            
+
             setIsDepositing(true);
         } catch (e) {
             console.log("[CreateAccount] Error:", e);
+            Toast.show({
+                text1: "Make sure you have SOL in your wallet.",
+                type: "error",
+            });
             setErrorMessage("Failed to create account. Please try again. Error: " + e);
         } finally {
             setIsDepositing(false);
@@ -292,7 +309,7 @@ export default function DepositModal({
                                 </View>
                             </View>
                             {/* Notice */}
-                            <View style={[styles.noticeBox, { backgroundColor: noticeBackground }] }>
+                            <View style={[styles.noticeBox, { backgroundColor: noticeBackground }]}>
                                 <View style={styles.noticeHeader}>
                                     <Icon name="Alert" size={18} />
                                     <ThemedText style={[styles.noticeTitle, { color: '#F59E42' }]}>Notice</ThemedText>
