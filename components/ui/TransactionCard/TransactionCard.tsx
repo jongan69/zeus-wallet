@@ -47,11 +47,11 @@ export default function TransactionCard({
 
   const userTransfer = transaction.nativeTransfers.find(
     (t) =>
-      t.toUserAccount === address.toBase58() ||
-      t.fromUserAccount === address.toBase58()
+      t.toUserAccount === address?.toBase58() ||
+      t.fromUserAccount === address?.toBase58()
   );
   const isIncome = userTransfer
-    ? userTransfer.toUserAccount === address.toBase58()
+    ? userTransfer.toUserAccount === address?.toBase58()
     : false;
   const amount = userTransfer ? userTransfer.amount : 0;
   const title = isZeusInteraction

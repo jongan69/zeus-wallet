@@ -15,11 +15,28 @@ import { ThemedText as Text } from '@/components/ui/ThemedText';
 import { ThemedView as View } from '@/components/ui/ThemedView';
 import { useSolanaWallet, WalletService } from '@/contexts/SolanaWalletProvider';
 import { useTheme } from '@/hooks/theme/useTheme';
-
+import { PublicKey } from '@solana/web3.js';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
 import Toast from 'react-native-toast-message';
+
+export async function RequestAirdrop(publicKey: PublicKey) {
+  if (!publicKey) {
+    return null;
+  }
+  try {
+    const res = await fetch(`/api/airdrop?address=${publicKey.toBase58()}`);
+    const data = await res.json();
+    if (data.result) {
+      Toast.show({ text1: 'Airdrop requested!', type: 'success' });
+    } else {
+      Toast.show({ text1: 'Airdrop failed', text2: data.error?.message || 'Unknown error', type: 'error' });
+    }
+  } catch (e) {
+    Toast.show({ text1: 'Airdrop failed', text2: String(e), type: 'error' });
+  }
+}
 
 const Section = ({ title, children }: { title: string, children: React.ReactNode }) => (
   <View style={styles.section}>
@@ -32,6 +49,24 @@ const Section = ({ title, children }: { title: string, children: React.ReactNode
 const GeneralTab = () => {
   const { theme, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState(true);
+  const { publicKey, login } = useSolanaWallet();
+  const [loading, setLoading] = useState(false);
+
+  const handleAirdrop = async () => {
+    setLoading(true);
+    if (!publicKey) {
+      await login().then(() => {
+        if (publicKey) {
+          RequestAirdrop(publicKey);
+        }
+        setLoading(false);
+      });
+    } else {
+      setLoading(true);
+      await RequestAirdrop(publicKey);
+      setLoading(false);
+    }
+  };
 
   return (
     <ScrollView style={[styles.tabContent, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}>
@@ -43,6 +78,9 @@ const GeneralTab = () => {
         <View style={styles.row}>
           <Text style={styles.label} type="subtitle">Notifications</Text>
           <Switch value={notifications} onValueChange={setNotifications} />
+        </View>
+        <View style={{ marginTop: 24 }}>
+          <ThemedButton title={loading ? 'Requesting Airdrop...' : 'Request 1 SOL Airdrop'} onPress={handleAirdrop} disabled={loading} />
         </View>
       </Section>
     </ScrollView>
@@ -71,7 +109,7 @@ const SecurityTab = () => {
 
   const handleCopy = () => {
     if (privateKey) {
-      Clipboard.setString(privateKey);
+      Clipboard.setStringAsync(privateKey);
       Alert.alert('Copied', 'Private key copied to clipboard.');
     }
   };
@@ -236,14 +274,14 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
     padding: 16,
-   
+
     borderRadius: 12,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
-   
+
   },
   row: {
     flexDirection: 'row',

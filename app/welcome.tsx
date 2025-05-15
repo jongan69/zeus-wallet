@@ -19,6 +19,8 @@ export default function WelcomeScreen() {
         text1: 'Wallet created!',
         type: 'success',
       });
+    }).then(async () => {
+      await WalletService.loadWallet();
       await connectDerivedWallet();
       router.navigate('/(tabs)');
     });
