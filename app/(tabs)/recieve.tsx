@@ -1,30 +1,25 @@
-import { Wallet } from "@/bitcoin/wallet";
 import Icon from "@/components/ui/Icons";
 import { ThemedButton as Button } from "@/components/ui/ThemedButton";
 import ClaimWidget from "@/components/Widgets/ClaimWidget/ClaimWidget";
-import { BaseConnector } from "@/connector";
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
 import { capitalizeFirstLetter } from "@/utils/format";
-import { notifyError } from "@/utils/notification";
 import * as Clipboard from 'expo-clipboard';
 import React, { useEffect, useState } from "react";
 import { Alert, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
 export default function ClaimPage() {
-  const { getCurrentWallet } = useSolanaWallet();
+  const { getCurrentWallet, isAuthenticated: solanaWalletConnected, login: loginSolana } = useSolanaWallet();
   const {
     wallet: bitcoinWallet,
-    connectConnectorWallet,
     connectDerivedWallet,
     connected: bitcoinWalletConnected,
-    handleConnectorId,
-    connectors,
-    connector,
     connecting,
     connected,
-  } = useBitcoinWallet();  
+  } = useBitcoinWallet();
+
+  const isAllConnected = bitcoinWalletConnected && solanaWalletConnected;
 
   const [copiedSolana, setCopiedSolana] = useState(false);
   const [copiedBitcoin, setCopiedBitcoin] = useState(false);
@@ -33,69 +28,16 @@ export default function ClaimPage() {
   const solanaAddress = solanaWallet?.publicKey.toBase58();
   const bitcoinAddress = bitcoinWallet?.p2tr;
 
-  const onConnectorConnect = React.useCallback(
-    async (
-      wallet: Wallet,
-      connector: BaseConnector
-    ) => {
-      // console.log("onConnectorConnect", wallet, connector);
-      if (connector?.isReady() && wallet?.type === "connector") {
-        await handleConnectorId(connector.metadata.id);
-      }
-      try {
-        await connectConnectorWallet(connector);
-      } catch (error) {
-        const walletError = error as { code: number };
-        if (walletError?.code === 4001) {
-          notifyError(
-            "You must have at least one account in the Bitcoin wallet."
-          );
-        }
-      }
-    },
-    [connectConnectorWallet, handleConnectorId]
-  );
-
-  const onDerivedWalletConnect = React.useCallback(
-    async () => {
-      try {
-        // console.log("onDerivedWalletConnect");
-        await connectDerivedWallet();
-      } catch (error) {
-        console.error("onDerivedWalletConnect error", error);
-      }
-    },
-    [connectDerivedWallet]
-  );
-
-  const connectWallet = React.useCallback(
-    async (wallet: Wallet) => {
-      // console.log("connectWallet", wallet);
-      if (wallet?.type === "connector") {
-        const connector = connectors[0];
-        if (connector?.isReady()) {
-          await onConnectorConnect(wallet, connector);
-        } else {
-          window.open(wallet.url, "_blank");
-        }
-      } else {
-        onDerivedWalletConnect();
-      }
-    },
-    [connectors, onConnectorConnect, onDerivedWalletConnect]
-  );
-
+  const connectBothWallets = async () => {
+    await loginSolana();
+    await connectDerivedWallet();
+  }
   useEffect(() => {
-    // console.log("solanaAddress", solanaAddress);
-    // console.log("bitcoinAddress", bitcoinAddress);
-    // console.log("bitcoinConnected", bitcoinWalletConnected);
-    // console.log("connectors", connectors);
-
-    // console.log("connectors", connectors[0]);
-    if (!bitcoinWallet) {
-      connectWallet(bitcoinWallet as any);
+    if (!isAllConnected) {
+      connectBothWallets();
     }
-  }, [bitcoinAddress, bitcoinWallet, bitcoinWalletConnected, connectWallet, connector, connectors, solanaAddress]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAllConnected]);
 
 
   const handleCopy = (type: "bitcoin" | "solana") => {
@@ -129,7 +71,7 @@ export default function ClaimPage() {
         <Text style={styles.unavailableDesc}>
           Claim feature is only available on Regtest network. Please connect to Regtest network to use this feature.
         </Text>
-        <Button onPress={connectDerivedWallet} disabled={connecting || connected} title={connecting ? "Connecting..." : "Connect Derived Bitcoin Wallet"} />
+        <Button onPress={connectBothWallets} disabled={connecting || connected} title={connecting ? "Connecting..." : "Connect Wallets"} />
       </View>
     );
   }
