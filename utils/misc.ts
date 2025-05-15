@@ -1,6 +1,6 @@
-
-
+import * as Clipboard from "expo-clipboard";
 import { SolanaNetwork } from "@/types/store";
+import { Platform } from "react-native";
 
 export const getSolanaExplorerUrl = (
   solanaNetwork: SolanaNetwork,
@@ -19,5 +19,7 @@ export const getSolanaExplorerUrl = (
 
 export const handleCopy = (value: string = "") => {
   if (!value) return;
-  navigator.clipboard.writeText(value);
+  Clipboard.setStringAsync(value);
 };
+
+export const isMobile = Platform.OS === "ios" || Platform.OS === "android";

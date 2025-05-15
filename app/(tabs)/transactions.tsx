@@ -5,7 +5,9 @@ import { useNetworkConfig } from '@/hooks/misc/useNetworkConfig';
 import { useTransactions } from '@/hooks/misc/useTransactions';
 import { useTheme } from '@/hooks/theme/useTheme';
 import { AccountData, Transaction } from '@/types/transaction';
+import { isMobile } from "@/utils/misc";
 import { FlashList } from '@shopify/flash-list';
+
 import React, { useCallback, useState } from 'react';
 import {
   Linking,
@@ -57,7 +59,7 @@ export default function TransactionsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}>
+    <View style={[styles.container, { backgroundColor: theme === 'dark' ? '#121212' : '#fff', paddingTop: isMobile ? "20%" : 0 }]}>
       <Text style={styles.header}>Transactions</Text>
 
       <View style={styles.filterRow}>
@@ -104,7 +106,6 @@ export default function TransactionsScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: '20%',
     flex: 1,
     padding: 16
   },

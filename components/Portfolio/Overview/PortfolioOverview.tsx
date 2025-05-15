@@ -2,6 +2,7 @@ import { BigNumber } from "bignumber.js";
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 
+import { isMobile } from "@/utils/misc";
 import useBalance from "@/hooks/misc/useBalance";
 import usePrice from "@/hooks/misc/usePrice";
 import usePositions from "@/hooks/zpl/usePositions";
@@ -46,7 +47,7 @@ export default function PortfolioOverview() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}
+      style={[styles.container, { backgroundColor: theme === 'dark' ? '#121212' : '#fff', paddingTop: isMobile ? "20%" : 0 }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
@@ -77,6 +78,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
-    paddingTop: "20%",
   },
 });

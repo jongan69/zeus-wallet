@@ -362,7 +362,7 @@ export default function PayScreen() {
         colors={["#23243a", "#1a1b2e", "#2d1e4f"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[StyleSheet.absoluteFill, { borderRadius: CARD_RADIUS }]}
+        style={[StyleSheet.absoluteFill]}
       />
       {!showCamera ? (
         <PayMainCard onInitiate={() => setShowCamera(true)} />
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: CARD_RADIUS,
+    // borderRadius: CARD_RADIUS,
   },
   glassCard: {
     ...baseCard,
