@@ -81,6 +81,20 @@ const GeneralTab = () => {
         </View>
         <View style={{ marginTop: 24 }}>
           <ThemedButton title={loading ? 'Requesting Airdrop...' : 'Request 1 SOL Airdrop'} onPress={handleAirdrop} disabled={loading} />
+          <View style={{ marginTop: 8, alignItems: 'center' }}>
+            <Text
+              style={styles.link}
+              onPress={async () => {
+                if (publicKey) {
+                  await Clipboard.setStringAsync(publicKey.toBase58());
+                  Toast.show({ text1: 'Address copied!', type: 'success' });
+                }
+                Linking.openURL('https://faucet.solana.com/');
+              }}
+            >
+              Devnet Faucet
+            </Text>
+          </View>
         </View>
       </Section>
     </ScrollView>
