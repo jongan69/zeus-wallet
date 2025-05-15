@@ -35,6 +35,7 @@ import SolanaIcon from "./Solana";
 import StakeIcon from "./Stake";
 import SuccessIcon from "./Success";
 import SwapIcon from "./Swap";
+import TbtcIcon from "./Tbtc";
 import TickIcon from "./TickIcon";
 import TransactionIcon from "./Transaction";
 import WalletIcon from "./Wallet";
@@ -88,6 +89,7 @@ export const IconComponents = {
   Withdraw01: Withdraw01Icon,
   Withdraw02: Withdraw02Icon,
   zbtc: ZbtcIcon,
+  tbtc: TbtcIcon,
 } as const;
 
 export type IconName = keyof typeof IconComponents;

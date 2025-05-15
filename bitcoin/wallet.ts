@@ -73,42 +73,42 @@ export const deriveBitcoinWallet = async (
   signMessage: (message: Uint8Array) => Promise<Uint8Array>
 ): Promise<BitcoinWallet | null> => {
   try {
-    console.log('[deriveBitcoinWallet] called with:', { publicKey: publicKey?.toBase58?.(), bitcoinNetwork, signMessageExists: !!signMessage });
+    // console.log('[deriveBitcoinWallet] called with:', { publicKey: publicKey?.toBase58?.(), bitcoinNetwork, signMessageExists: !!signMessage });
     if (publicKey === undefined) {
-      console.log('[deriveBitcoinWallet] publicKey is undefined');
+      // console.log('[deriveBitcoinWallet] publicKey is undefined');
       return null;
     }
     const ECPair = ECPairFactory(ecc);
     bitcoin.initEccLib(ecc);
     if (!publicKey) {
-      console.log('[deriveBitcoinWallet] Wallet not connected!');
+      // console.log('[deriveBitcoinWallet] Wallet not connected!');
       throw new Error("Wallet not connected!");
     }
     if (!signMessage) {
-      console.log('[deriveBitcoinWallet] Wallet does not support message signing!');
+      // console.log('[deriveBitcoinWallet] Wallet does not support message signing!');
       throw new Error("Wallet does not support message signing!");
     }
     const message = new TextEncoder().encode(
       `By proceeding, you are authorizing the generation of a Testnet address based on the Solana wallet you've connected. This process does not charge any fees. Connected Solana wallet address:${publicKey.toBase58()}`
     );
-    console.log('[deriveBitcoinWallet] Message to sign:', new TextDecoder().decode(message));
+    // console.log('[deriveBitcoinWallet] Message to sign:', new TextDecoder().decode(message));
 
     const signature = await signMessage(message);
-    console.log('[deriveBitcoinWallet] Signature:', Buffer.from(signature).toString('hex'));
+    // console.log('[deriveBitcoinWallet] Signature:', Buffer.from(signature).toString('hex'));
 
     // const isValid = verify(signature, message, publicKey.toBytes());
     // console.log('[deriveBitcoinWallet] Signature valid:', isValid);
     // if (!isValid) throw new Error("Invalid signature!");
     const signature_hash = sha256(Buffer.from(signature));
     const privkey_hex = signature_hash.toString("hex");
-    console.log('[deriveBitcoinWallet] signature_hash:', privkey_hex);
+    // console.log('[deriveBitcoinWallet] signature_hash:', privkey_hex);
 
     const keyPair = ECPair.fromPrivateKey(signature_hash);
     const privkey = keyPair;
     const pubkey = Buffer.from(keyPair.publicKey).toString("hex");
-    console.log('[deriveBitcoinWallet] keyPair:', { privkey, pubkey });
+    // console.log('[deriveBitcoinWallet] keyPair:', { privkey, pubkey });
     const network = convertBitcoinNetwork(bitcoinNetwork);
-    console.log('[deriveBitcoinWallet] network:', network);
+    // console.log('[deriveBitcoinWallet] network:', network);
 
     const p2pkh =
       bitcoin.payments.p2pkh({
@@ -125,7 +125,7 @@ export const deriveBitcoinWallet = async (
         internalPubkey: Buffer.from(keyPair.publicKey.subarray(1, 33)),
         network,
       }).address ?? "";
-    console.log('[deriveBitcoinWallet] addresses:', { p2pkh, p2wpkh, p2tr });
+    // console.log('[deriveBitcoinWallet] addresses:', { p2pkh, p2wpkh, p2tr });
 
     const tweakKeypair = tweakSigner(
       {
@@ -137,7 +137,7 @@ export const deriveBitcoinWallet = async (
       } as any,
       { network }
     );
-    console.log('[deriveBitcoinWallet] tweakKeypair:', tweakKeypair);
+    // console.log('[deriveBitcoinWallet] tweakKeypair:', tweakKeypair);
 
     const result = {
       privkeyHex: privkey_hex,
@@ -154,10 +154,10 @@ export const deriveBitcoinWallet = async (
         signSchnorr: (hash: Buffer) => Buffer.from(keyPair.signSchnorr(hash)),
       },
     };
-    console.log('[deriveBitcoinWallet] result:', result);
+    // console.log('[deriveBitcoinWallet] result:', result);
     return result;
   } catch (error) {
-    console.log("[deriveBitcoinWallet] error", `Sign Message failed! ${error}`);
+    console.error("[deriveBitcoinWallet] error", `Sign Message failed! ${error}`);
     return null;
   }
 };

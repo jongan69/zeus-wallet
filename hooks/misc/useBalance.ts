@@ -6,7 +6,8 @@ import useSWR from "swr";
 
 
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
-import { useNetworkConfig } from "./useNetworkConfig";
+import { useZplClient } from "@/contexts/ZplClientProvider";
+
 const balanceFetcher = async (
   publickey: PublicKey,
   connection: Connection,
@@ -23,11 +24,11 @@ const balanceFetcher = async (
 };
 
 const useBalance = (solanaPubkey: PublicKey | null) => {
-  const config = useNetworkConfig();
   const { connection } = useSolanaWallet();
+  const zplClient = useZplClient();
   const { data, isLoading, mutate } = useSWR<BigNumber>(
     solanaPubkey && connection
-      ? [solanaPubkey.toBase58(), connection, config.assetMint, "balance"]
+      ? [solanaPubkey.toBase58(), connection, zplClient?.assetMint, "balance"]
       : null,
     async ([pubkeyStr, conn, mint]: [string, Connection, string]) =>
       balanceFetcher(new PublicKey(pubkeyStr), conn, new PublicKey(mint)),

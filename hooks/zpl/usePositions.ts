@@ -5,19 +5,19 @@ import { useZplClient } from "@/contexts/ZplClientProvider";
 import { useNetworkConfig } from "@/hooks/misc/useNetworkConfig";
 
 function usePositions(solanaPubkey: PublicKey | null) {
-  const client = useZplClient();
+  const zplClient = useZplClient();
   const config = useNetworkConfig();
   const { data, mutate, isLoading } = useSWR(
-    client && solanaPubkey
-      ? [client, solanaPubkey, "getPositionsByWallet"]
+    zplClient && solanaPubkey
+      ? [zplClient, solanaPubkey, "getPositionsByWallet"]
       : null,
-    async ([client, solanaPubkey]) => {
-      const positions = await client?.getPositionsByWallet(solanaPubkey);
+    async ([zplClient, solanaPubkey]) => {
+      const positions = await zplClient?.getPositionsByWallet(solanaPubkey);
 
       const targetPositions = positions.filter(
         (position) =>
           position.guardianSetting.toBase58() ===
-          client
+          zplClient
             .deriveLiquidityManagementGuardianSettingAddress(
               new PublicKey(config.guardianSetting)
             )

@@ -8,6 +8,7 @@ import { Button, StyleSheet, View } from "react-native";
 
 import Icon from "@/components/ui/Icons";
 import { useTheme } from "@/hooks/theme/useTheme";
+import DepositModal from "../Modals/Deposit";
 import RedeemModal from "../Modals/Redeem";
 
 const PortfolioDetails = ({
@@ -24,6 +25,7 @@ const PortfolioDetails = ({
   zbtcBalanceInVault: BigNumber;
 }) => {
   const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const { theme } = useTheme();
   // const defiRef = useRef<HTMLDivElement>(null);
   // const redeemRef = useRef<HTMLDivElement>(null);
@@ -46,6 +48,25 @@ const PortfolioDetails = ({
             ? formatValue((tbtcBalance / 10 ** BTC_DECIMALS) * btcPrice, 2)
             : 0} USD
         </Text>
+        <Button
+          title="Deposit"
+          onPress={() => setIsDepositModalOpen(true)}
+        />
+        <DepositModal
+          isOpen={isDepositModalOpen}
+          onClose={() => setIsDepositModalOpen(false)}
+          btcPrice={btcPrice}
+          positions={positions ?? []}
+          balance={tbtcBalance > 0 ? tbtcBalance / 10 ** BTC_DECIMALS : 0}
+          max={tbtcBalance > 0 ? tbtcBalance / 10 ** BTC_DECIMALS : 0}
+          minerFee={0}
+          assetFrom={{ name: "tBTC", amount: "0", isLocked: false }}
+          assetTo={{ name: "zBTC", amount: "0", isLocked: false }}
+          isDepositAll={false}
+          signPsbt={async () => ""}
+          updateTransactions={async () => {}}
+          resetProvideAmountValue={() => {}}
+        />
       </View>
 
       {/* Available Section */}

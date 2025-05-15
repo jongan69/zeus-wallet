@@ -125,8 +125,9 @@ export default function RedeemModal({
         if (!twoWayPegGuardianSetting)
           throw new Error("Two way peg guardian setting not found");
 
+        if (!zplClient?.assetMint) throw new Error("Asset mint not found");
         const receiverAta = getAssociatedTokenAddressSync(
-          new PublicKey(config.assetMint),
+          zplClient.assetMint,
           solanaPubkey,
           true
         );
@@ -144,7 +145,7 @@ export default function RedeemModal({
             process.env.NEXT_PUBLIC_DEVNET_REDEEM_ADDRESS
           );
           const toATA = getAssociatedTokenAddressSync(
-            new PublicKey(config.assetMint),
+            new PublicKey(zplClient.assetMint),
             targetAddress,
             true
           );
@@ -156,7 +157,7 @@ export default function RedeemModal({
               solanaPubkey,
               toATA,
               targetAddress,
-              new PublicKey(config.assetMint)
+              new PublicKey(zplClient.assetMint)
             );
             ixs.push(createIx);
           }

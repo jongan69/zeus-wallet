@@ -1,6 +1,7 @@
 import Icon from "@/components/ui/Icons";
 import { IconName } from "@/components/ui/Icons/icons";
 import ButtonLoader from "@/components/ui/Loader/Loader";
+import { useTheme } from "@/hooks/theme/useTheme";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
@@ -36,9 +37,9 @@ const Button = ({
   onClick,
   disabled,
   hideLabel,
-  className,
   isLoading = false,
 }: ButtonProps) => {
+  const { theme } = useTheme();
   // Style selection
   const getButtonStyle = () => {
     const styleArr: any[] = [styles.buttonBase];
@@ -64,7 +65,7 @@ const Button = ({
       {!isLoading && icon && iconPosition === "left" && (
         <Icon name={icon} size={18} style={{ marginRight: !hideLabel ? 8 : 0 }} />
       )}
-      {!isLoading && !hideLabel && <Text style={styles.label}>{label}</Text>}
+      {!isLoading && !hideLabel && <Text style={[styles.label, { color: theme === "light" ? "#000" : "#000" }]}>{label}</Text>}
       {!isLoading && icon && iconPosition === "right" && (
         <Icon name={icon} size={18} style={{ marginLeft: !hideLabel ? 8 : 0 }} />
       )}
@@ -119,7 +120,6 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   label: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "500",
   },

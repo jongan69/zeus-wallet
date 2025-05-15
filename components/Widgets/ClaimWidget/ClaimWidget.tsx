@@ -44,12 +44,12 @@ export default function ClaimWidget() {
     if (!bitcoinWallet) return;
     const fetchClaimableAmount = async () => {
       try {
-        console.log("[fetchClaimableAmount] Called");
+        // console.log("[fetchClaimableAmount] Called");
         const response = await aegleFetcher(
           `api/v1/bitcoin-regtest-wallet/${bitcoinWallet.p2tr}`,
           claimTBTCSchema
         );
-        console.log("[fetchClaimableAmount] Response received", response);
+        // console.log("[fetchClaimableAmount] Response received", response);
         if (!response) return;
 
         setClaimableTimes(response.remainingClaimCounts);
@@ -61,37 +61,37 @@ export default function ClaimWidget() {
   }, [bitcoinWallet, aegleFetcher]);
 
   const handleClaim = () => {
-    console.log("[handleClaim] Called");
+    // console.log("[handleClaim] Called");
     if (!bitcoinWallet) {
       console.log("[handleClaim] No bitcoinWallet found");
       return;
     }
 
     setIsClaiming(true);
-    console.log("[handleClaim] setIsClaiming(true)");
+    // console.log("[handleClaim] setIsClaiming(true)");
 
     const { aegleApi } = createAxiosInstances(solanaNetwork, bitcoinNetwork);
-    console.log("aegleApi", aegleApi);
+    // console.log("aegleApi", aegleApi);
 
-    console.log("[handleClaim] Created axios instances", { solanaNetwork, bitcoinNetwork });
+    // console.log("[handleClaim] Created axios instances", { solanaNetwork, bitcoinNetwork });
 
     const claimUrl = `api/v1/bitcoin-regtest-wallet/${bitcoinWallet.p2tr}/claim`;
-    console.log("[handleClaim] claimUrl:", claimUrl);
+    // console.log("[handleClaim] claimUrl:", claimUrl);
 
     aegleApi
       .post(claimUrl, {
         amount: CLAIM_AMOUNT_LIMIT,
       })
       .then((response) => {
-        console.log("[handleClaim] Response received", response);
+        // console.log("[handleClaim] Response received", response);
         if (response.status === 200) {
-          console.log("[handleClaim] Claim successful, opening modal");
+          // console.log("[handleClaim] Claim successful, opening modal");
           openModalByName(MODAL_NAMES.SUCCESSFUL_CLAIM);
         } else if (response.status === 429) {
-          console.log("[handleClaim] Daily claim limit reached");
+          // console.log("[handleClaim] Daily claim limit reached");
           notifyError("You have reached the daily claim limit.");
         } else {
-          console.log("[handleClaim] Unexpected response status", response.status);
+          // console.log("[handleClaim] Unexpected response status", response.status);
         }
       })
       .catch((error) => {
@@ -100,7 +100,7 @@ export default function ClaimWidget() {
       })
       .finally(() => {
         setIsClaiming(false);
-        console.log("[handleClaim] setIsClaiming(false)");
+        // console.log("[handleClaim] setIsClaiming(false)");
       });
   };
 

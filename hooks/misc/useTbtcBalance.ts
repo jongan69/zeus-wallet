@@ -5,12 +5,12 @@ import { useFetchers } from "./useFetchers";
 
 const fetchClaimableAmount = async (bitcoinAddress: string, aegleFetcher: any) => {
     try {
-      console.log("[fetchClaimableAmount] Called");
+      // console.log("[fetchClaimableAmount] Called");
       const response = await aegleFetcher(
         `api/v1/bitcoin-regtest-wallet/${bitcoinAddress}`,
         claimTBTCSchema
       );
-      console.log("[fetchClaimableAmount] Response received", response);
+      // console.log("[fetchClaimableAmount] Response received", response);
       if (!response) return 0;
 
       return response.balance;

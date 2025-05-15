@@ -3,10 +3,10 @@ import useSWR from "swr";
 import { useZplClient } from "@/contexts/ZplClientProvider";
 
 function useTwoWayPegConfiguration() {
-  const client = useZplClient();
+  const zplClient = useZplClient();
   const { data, mutate } = useSWR(
-    client ? [client, "getTwoWayPegConfiguration"] : null,
-    () => client?.getTwoWayPegConfiguration(),
+    zplClient ? [zplClient, "getTwoWayPegConfiguration"] : null,
+    () => zplClient?.getTwoWayPegConfiguration(),
     {
       dedupingInterval: 600000,
     }

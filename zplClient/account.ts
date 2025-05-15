@@ -5,14 +5,14 @@ import { sha256 } from "js-sha256";
 
 import { BitcoinXOnlyPublicKey } from "@/types/wallet";
 import {
-  HotReserveBucket,
-  hotReserveBucketSchema,
-  positionSchema,
-  Position,
-  TwoWayPegConfiguration,
-  twoWayPegConfigurationSchema,
   ColdReserveBucket,
   coldReserveBucketSchema,
+  HotReserveBucket,
+  hotReserveBucketSchema,
+  Position,
+  positionSchema,
+  TwoWayPegConfiguration,
+  twoWayPegConfigurationSchema,
 } from "@/types/zplClient";
 
 // Helper functions
@@ -272,6 +272,9 @@ export class AccountService {
   }
 
   async getColdReserveBuckets() {
+    console.log("[getColdReserveBuckets] called");
+    console.log("[getColdReserveBuckets] this.twoWayPegProgramId", this.twoWayPegProgramId.toBase58());
+    
     const filters = [
       {
         memcmp: {

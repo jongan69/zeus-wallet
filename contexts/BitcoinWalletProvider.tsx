@@ -233,7 +233,6 @@ export function BitcoinWalletProvider({ children }: { children: ReactNode }) {
   }, [connectorId]);
 
   const disconnectConnector = useCallback(() => {
-    // localStorage.removeItem("current-connector-id");
     txConfirm.reset();
     if (connector) {
       connector.disconnect();
@@ -258,7 +257,6 @@ export function BitcoinWalletProvider({ children }: { children: ReactNode }) {
     let res = null;
     try {
       if (!solanaPubkey) {
-        console.log("Solana public key is missing");
         return;
       }
 
@@ -272,7 +270,6 @@ export function BitcoinWalletProvider({ children }: { children: ReactNode }) {
       }
 
       if (!res) {
-        console.log("Error connecting Bitcoin wallet");
         setConnected(false);
         setBitcoinWalletType(null);
         return;
@@ -313,10 +310,9 @@ export function BitcoinWalletProvider({ children }: { children: ReactNode }) {
         setAccounts([res.p2tr]);
         setConnectorId(connector.metadata.id);
         setConnected(true);
-        // localStorage.setItem("current-connector-id", connector.metadata.id);
 
         if (!res) {
-          console.log("Error connecting Bitcoin wallet");
+          // console.log("Error connecting Bitcoin wallet");
           setConnected(false);
           setBitcoinWalletType(null);
           return;

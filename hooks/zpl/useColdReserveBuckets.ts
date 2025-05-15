@@ -3,10 +3,10 @@ import useSWR from "swr";
 import { useZplClient } from "@/contexts/ZplClientProvider";
 
 function useColdReserveBuckets() {
-  const client = useZplClient();
+  const zplClient = useZplClient();
   const { data, mutate, isLoading } = useSWR(
-    client ? [client, "getColdReserveBuckets"] : null,
-    ([client]) => client.getColdReserveBuckets(),
+    zplClient ? [zplClient, "getColdReserveBuckets"] : null,
+    ([zplClient]) => zplClient.getColdReserveBuckets(),
     {
       dedupingInterval: 3600000,
     }

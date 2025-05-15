@@ -12,13 +12,7 @@ export interface NetworkConfig {
   customSolanaUrl: string;
   bitcoinExplorerUrl: string;
   bootstrapperProgramId: string;
-  liquidityManagementProgramId: string;
-  delegatorProgramId: string;
-  twoWayPegProgramId: string;
-  bitcoinSpvProgramId: string;
-  layerCaProgramId: string;
   guardianSetting: string;
-  assetMint: string;
 }
 
 export type NetworkConfigMap = Record<string, NetworkConfig>;

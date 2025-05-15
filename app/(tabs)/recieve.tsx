@@ -31,14 +31,12 @@ export default function ClaimPage() {
   const solanaAddress = solanaWallet?.publicKey.toBase58();
   const bitcoinAddress = bitcoinWallet?.p2tr;
 
-
-
   const onConnectorConnect = React.useCallback(
     async (
       wallet: Wallet,
       connector: BaseConnector
     ) => {
-      console.log("onConnectorConnect", wallet, connector);
+      // console.log("onConnectorConnect", wallet, connector);
       if (connector?.isReady() && wallet?.type === "connector") {
         await handleConnectorId(connector.metadata.id);
       }
@@ -59,7 +57,7 @@ export default function ClaimPage() {
   const onDerivedWalletConnect = React.useCallback(
     async () => {
       try {
-        console.log("onDerivedWalletConnect");
+        // console.log("onDerivedWalletConnect");
         await connectDerivedWallet();
       } catch (error) {
         console.error("onDerivedWalletConnect error", error);
@@ -70,7 +68,7 @@ export default function ClaimPage() {
 
   const connectWallet = React.useCallback(
     async (wallet: Wallet) => {
-      console.log("connectWallet", wallet);
+      // console.log("connectWallet", wallet);
       if (wallet?.type === "connector") {
         const connector = connectors[0];
         if (connector?.isReady()) {
@@ -86,12 +84,12 @@ export default function ClaimPage() {
   );
 
   useEffect(() => {
-    console.log("solanaAddress", solanaAddress);
-    console.log("bitcoinAddress", bitcoinAddress);
-    console.log("bitcoinConnected", bitcoinWalletConnected);
-    console.log("connectors", connectors);
+    // console.log("solanaAddress", solanaAddress);
+    // console.log("bitcoinAddress", bitcoinAddress);
+    // console.log("bitcoinConnected", bitcoinWalletConnected);
+    // console.log("connectors", connectors);
 
-    console.log("connectors", connectors[0]);
+    // console.log("connectors", connectors[0]);
     if (!bitcoinWallet) {
       connectWallet(bitcoinWallet as any);
     }

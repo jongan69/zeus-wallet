@@ -84,11 +84,6 @@ export const createAxiosInstances = (
       timeout: 20000,
     })
   );
-
-  console.log("binanceApi", binanceApi);
-  console.log("aegleApi", aegleApi);
-  console.log("aresApi", aresApi);
-  console.log("hermesApi", hermesApi);
   return { binanceApi, aegleApi, aresApi, hermesApi };
 };
 
@@ -147,7 +142,7 @@ export const createFetchers = (
   ): Promise<T> => {
     try {
       const response = await aresApi.get<ZeusBackendResponse<T>>(url);
-      console.log("aresFetcher response", response.data);
+      // console.log("aresFetcher response", response.data);
       return schema.parse(response.data.data);
     } catch (e) {
       handleFetcherError(e, "Ares fetcher");

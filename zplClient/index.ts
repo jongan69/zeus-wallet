@@ -18,17 +18,17 @@ export class ZplClient {
   private accountService: AccountService;
   private instructionService: InstructionService;
   private rpcClient: RpcClient;
-  private twoWayPegProgramId: PublicKey;
-  private liquidityManagementProgramId: PublicKey;
-  private assetMint: PublicKey;
+  public twoWayPegProgramId: PublicKey;
+  public liquidityManagementProgramId: PublicKey;
+  public assetMint: PublicKey;
 
   constructor(
     connection: Connection,
     walletPublicKey: PublicKey | null,
     signTransaction:
       | (<T extends Transaction | VersionedTransaction>(
-          transaction: T
-        ) => Promise<T>)
+        transaction: T
+      ) => Promise<T>)
       | undefined,
     twoWayPegProgramId: string,
     liquidityManagementProgramId: string,
@@ -115,6 +115,9 @@ export class ZplClient {
   }
 
   async getColdReserveBuckets() {
+    console.log("[getColdReserveBuckets] called");
+    console.log("[getColdReserveBuckets] this.accountService", this.accountService);
+    console.log("[getColdReserveBuckets] this.accountService.getColdReserveBuckets()", this.accountService.getColdReserveBuckets());
     return this.accountService.getColdReserveBuckets();
   }
 

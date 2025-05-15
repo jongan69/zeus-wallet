@@ -3,6 +3,7 @@ import "../polyfills";
 import ParallaxScrollView from '@/components/ui/ParallaxScrollView';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { ThemedView } from '@/components/ui/ThemedView';
+import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { WalletService } from '@/contexts/SolanaWalletProvider';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -12,12 +13,19 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function WelcomeScreen() {
   const [hasWallet, setHasWallet] = useState<boolean | null>(null);
+  const {
+    connectDerivedWallet,
+  } = useBitcoinWallet();  
+
 
   useEffect(() => {
-    WalletService.loadWallet().then(wallet => {
-      setHasWallet(!!wallet);
-    });
-  }, []);
+    const loadWallet = async () => {
+      WalletService.loadWallet().then(wallet => {
+        setHasWallet(!!wallet);
+      }).then(async () =>  await connectDerivedWallet());
+    }
+    loadWallet();
+  }, [connectDerivedWallet]);
 
   if (hasWallet === null) {
     // Optionally show a loading spinner
@@ -25,6 +33,7 @@ export default function WelcomeScreen() {
   }
 
   if (hasWallet) {
+   
     return <Redirect href="/(tabs)" />;
   }
 
