@@ -1,5 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
-import BigNumber from "bignumber.js";
+import { BigNumber } from "bignumber.js";
 import dayjs from "dayjs";
 
 import { EllipsisPosition } from "@/types/misc";

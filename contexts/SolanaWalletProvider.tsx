@@ -2,6 +2,7 @@ import { getLocalStorage, removeLocalStorage, setLocalStorage } from '@/utils/lo
 import { Connection, Keypair, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import nacl from 'tweetnacl';
+
 export class WalletService {
   private static readonly WALLET_KEY = 'local_wallet';
   private static currentWallet: Keypair | null = null;
@@ -69,6 +70,7 @@ interface SolanaWalletContextType {
   getCurrentWallet: () => Keypair | null;
   exportPrivateKey: () => Promise<string | null>;
   connection: Connection;
+  network: string;
   sendTransaction: (transaction: Transaction | VersionedTransaction) => Promise<string>;
 }
 
@@ -82,6 +84,9 @@ export function SolanaWalletProvider({ children }: { children: React.ReactNode }
     () => new Connection(process.env.EXPO_PUBLIC_SOLANA_DEVNET_RPC!),
     []
   );
+
+  // Define network (from env or default to 'devnet')
+  const network = process.env.EXPO_PUBLIC_SOLANA_NETWORK || "devnet";
 
   const loadExistingWallet = useCallback(async () => {
     const wallet = await WalletService.loadWallet()
@@ -186,8 +191,9 @@ export function SolanaWalletProvider({ children }: { children: React.ReactNode }
     getCurrentWallet,
     exportPrivateKey,
     connection,
+    network,
     sendTransaction,
-  }), [isAuthenticated, publicKey, login, logout, loadExistingWallet, signTransaction, signMessage, getCurrentWallet, exportPrivateKey, connection, sendTransaction])
+  }), [isAuthenticated, publicKey, login, logout, loadExistingWallet, signTransaction, signMessage, getCurrentWallet, exportPrivateKey, connection, network, sendTransaction])
 
   return (
     <SolanaWalletContext.Provider value={contextValue}>

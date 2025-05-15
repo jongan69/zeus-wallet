@@ -38,6 +38,8 @@ import SwapIcon from "./Swap";
 import TbtcIcon from "./Tbtc";
 import TickIcon from "./TickIcon";
 import TransactionIcon from "./Transaction";
+import TransferIcon from "./Transfer";
+import UnknownIcon from "./Unknown";
 import WalletIcon from "./Wallet";
 import WalletSmallIcon from "./WalletSmall";
 import Withdraw01Icon from "./Withdraw01";
@@ -90,6 +92,8 @@ export const IconComponents = {
   Withdraw02: Withdraw02Icon,
   zbtc: ZbtcIcon,
   tbtc: TbtcIcon,
+  Transfer: TransferIcon,
+  Unknown: UnknownIcon,
 } as const;
 
 export type IconName = keyof typeof IconComponents;

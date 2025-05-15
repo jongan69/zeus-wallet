@@ -7,9 +7,11 @@ import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
 import { capitalizeFirstLetter } from "@/utils/format";
 import { notifyError } from "@/utils/notification";
+import * as Clipboard from 'expo-clipboard';
 import React, { useEffect, useState } from "react";
-import { Alert, Clipboard, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+
 export default function ClaimPage() {
   const { getCurrentWallet } = useSolanaWallet();
   const {
@@ -98,12 +100,12 @@ export default function ClaimPage() {
 
   const handleCopy = (type: "bitcoin" | "solana") => {
     if (type === "bitcoin" && bitcoinAddress) {
-      Clipboard.setString(bitcoinAddress);
+      Clipboard.setStringAsync(bitcoinAddress);
       setCopiedBitcoin(true);
       setTimeout(() => setCopiedBitcoin(false), 1500);
     }
     if (type === "solana" && solanaAddress) {
-      Clipboard.setString(solanaAddress);
+      Clipboard.setStringAsync(solanaAddress);
       setCopiedSolana(true);
       setTimeout(() => setCopiedSolana(false), 1500);
     }

@@ -2,7 +2,7 @@ import Svg, { Path, SvgProps } from "react-native-svg";
 
 export interface IconProps {
   props?: SvgProps;
-  size?: 18 | 14 | 12;
+  size?: number;
   color?: string;
 }
 

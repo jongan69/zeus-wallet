@@ -5,14 +5,12 @@ export interface IconProps {
   /** Name of Icon */
   name: IconName;
   /** Size of Icon */
-  size?: 18 | 14 | 12;
-  /** Custom Style */
-  style?: React.CSSProperties;
+  size?: number;
   /** Custom Color */
   color?: string;
 }
 
-const Icon = ({ name, size, style, color }: IconProps) => {
+const Icon = ({ name, size, color }: IconProps) => {
   const { theme } = useTheme();
   const IconComponent = IconComponents[name];
 

@@ -1,47 +1,60 @@
 import { ThemedText as Text } from '@/components/ui/ThemedText';
 import TransactionCard from '@/components/ui/TransactionCard/TransactionCard';
 import { useSolanaWallet } from '@/contexts/SolanaWalletProvider';
+import { useNetworkConfig } from '@/hooks/misc/useNetworkConfig';
 import { useTransactions } from '@/hooks/misc/useTransactions';
 import { useTheme } from '@/hooks/theme/useTheme';
+import { AccountData, Transaction } from '@/types/transaction';
 import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useState } from 'react';
 import {
-    Linking,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  Linking,
+  RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const FILTERS = ['All', 'Income', 'Expenses'];
 
 export default function TransactionsScreen() {
   const { theme } = useTheme();
-  const { publicKey: address } = useSolanaWallet();
-  const { transactions, loading, error } = useTransactions(address!);
+  const { publicKey: address, network } = useSolanaWallet();
+  const networkConfig = useNetworkConfig();
+  const { transactions, loading, error, refetch } = useTransactions(address!);
   const [filter, setFilter] = useState('All');
+  const [refreshing, setRefreshing] = useState(false);
 
-  const filtered = transactions.filter((tx: any) => {
+  const filtered = transactions.filter((tx: Transaction) => {
     if (filter === 'All') return true;
-    const accountData = tx.accountData?.find((a: any) => a.account === address);
+    const accountData = tx.accountData?.find((a: AccountData) => a.account === address?.toBase58());
     const net = accountData?.nativeBalanceChange ?? 0;
     return filter === 'Income' ? net > 0 : net < 0;
   });
 
-  const sorted = filtered.sort((a: any, b: any) => (b.timestamp || 0) - (a.timestamp || 0));
+  const sorted = filtered.sort((a: Transaction, b: Transaction) => (b.timestamp || 0) - (a.timestamp || 0));
 
   const renderItem = useCallback(
-    ({ item }: { item: any }) => (
+    ({ item }: { item: Transaction }) => (
       <TransactionCard
+        networkConfig={networkConfig}
         transaction={item}
+        address={address!}
         onPress={() =>
           Linking.openURL(
-            `https://solscan.io/tx/${item.signature}?cluster=mainnet-beta`,
+            `https://solscan.io/tx/${item.signature}?cluster=${network}`,
           )
         }
       />
     ),
-    [],
+    [address, network, networkConfig],
   );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}>
@@ -76,6 +89,13 @@ export default function TransactionsScreen() {
           renderItem={renderItem}
           keyExtractor={item => item.signature}
           ListEmptyComponent={<Text style={styles.end}>No transactions found</Text>}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={theme === 'dark' ? '#fff' : '#000'}
+            />
+          }
         />
       )}
     </View>
