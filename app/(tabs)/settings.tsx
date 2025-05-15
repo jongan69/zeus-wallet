@@ -94,6 +94,9 @@ const GeneralTab = () => {
             >
               Devnet Faucet
             </Text>
+            <Text style={styles.link} onPress={() => Linking.openURL('https://demo-store-beige.vercel.app/')}>
+              Demo Store
+            </Text>
           </View>
         </View>
       </Section>
