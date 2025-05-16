@@ -8,6 +8,8 @@ import {
   useWindowDimensions,
 } from 'react-native';
 
+import { ExternalLink } from '@/components/ui/ExternalLink';
+import Icon from '@/components/ui/Icons';
 import Modal from '@/components/ui/Modal/Modal';
 import ModalHeader from '@/components/ui/Modal/ModalHeader';
 import { ThemedButton } from '@/components/ui/ThemedButton';
@@ -82,21 +84,18 @@ const GeneralTab = () => {
         <View style={{ marginTop: 24 }}>
           <ThemedButton title={loading ? 'Requesting Airdrop...' : 'Request 1 SOL Airdrop'} onPress={handleAirdrop} disabled={loading} />
           <View style={{ marginTop: 8, alignItems: 'center' }}>
-            <Text
-              style={styles.link}
-              onPress={async () => {
-                if (publicKey) {
-                  await Clipboard.setStringAsync(publicKey.toBase58());
-                  Toast.show({ text1: 'Address copied!', type: 'success' });
-                }
-                Linking.openURL('https://faucet.solana.com/');
-              }}
-            >
-              Devnet Faucet
-            </Text>
-            <Text style={styles.link} onPress={() => Linking.openURL('https://demo-store-beige.vercel.app/')}>
-              Demo Store
-            </Text>
+            <ExternalLink style={styles.link} href="https://faucet.solana.com/">
+              <Text style={styles.link}>
+                <Icon name="Link" size={16} color={theme === 'dark' ? '#fff' : '#000'} />
+                Devnet Faucet
+              </Text>
+            </ExternalLink>
+            <ExternalLink style={styles.link} href="https://demo-store-beige.vercel.app/">
+              <Text style={styles.link}>
+                <Icon name="Link" size={16} color={theme === 'dark' ? '#fff' : '#000'} />
+                Demo Store
+              </Text>
+            </ExternalLink>
           </View>
         </View>
       </Section>

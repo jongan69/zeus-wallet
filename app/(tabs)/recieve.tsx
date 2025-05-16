@@ -53,10 +53,10 @@ export default function ClaimPage() {
     }
   };
 
-  const handleShare = async () => {
-    if (bitcoinAddress) {
+  const handleShare = async (address: string) => {
+    if (address) {
       try {
-        await Share.share({ message: bitcoinAddress });
+        await Share.share({ message: address });
       } catch {
         Alert.alert("Error", "Failed to share address");
       }
@@ -120,7 +120,7 @@ export default function ClaimPage() {
               <TouchableOpacity onPress={() => handleCopy("bitcoin")} style={styles.iconButton}>
                 <Icon name={copiedBitcoin ? "Success" : "Copy"} size={18} color={copiedBitcoin ? "#4caf50" : "#ffa794"} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
+              <TouchableOpacity onPress={() => handleShare(bitcoinAddress)} style={styles.iconButton}>
                 <Icon name="Link" size={18} color="#ffa794" />
               </TouchableOpacity>
             </>
@@ -135,7 +135,7 @@ export default function ClaimPage() {
               <TouchableOpacity onPress={() => handleCopy("solana")} style={styles.iconButton}>
                 <Icon name={copiedSolana ? "Success" : "Copy"} size={18} color={copiedSolana ? "#4caf50" : "#ffa794"} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
+              <TouchableOpacity onPress={() => handleShare(solanaAddress)} style={styles.iconButton}>
                 <Icon name="Link" size={18} color="#ffa794" />
               </TouchableOpacity>
             </>

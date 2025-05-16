@@ -1,6 +1,6 @@
 import Svg, { ClipPath, Defs, G, Path, Rect, SvgProps } from "react-native-svg";
 
-export interface IconProps {
+interface IconProps {
   size?: number;
   color?: string;
   props?: SvgProps;

@@ -259,7 +259,7 @@ export const constructDepositToHotReserveTx = (
   });
 
   // FIXME: there is a return amount, might need to handle minimum dust amount
-  if (returnAmount != 0 && returnAmount > DUST_AMOUNT) {
+  if (returnAmount !== 0 && returnAmount > DUST_AMOUNT) {
     psbt.addOutput({
       address: address,
       value: returnAmount,

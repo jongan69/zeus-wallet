@@ -1,6 +1,6 @@
 import Svg, { ClipPath, Defs, G, Path, Rect, SvgProps } from "react-native-svg";
 
-export interface IconProps {
+interface IconProps {
   props?: SvgProps;
   size?: number;
   color?: string;
@@ -23,7 +23,7 @@ export default function SuccessIcon({ props, size = 18, color }: IconProps) {
       </G>
       <Defs>
         <ClipPath id="clip0_1638_246">
-          <Rect width="18" height="18" fill="white" />
+          <Rect width={size} height={size} fill={color ?? 'white'} />
         </ClipPath>
       </Defs>
     </Svg>

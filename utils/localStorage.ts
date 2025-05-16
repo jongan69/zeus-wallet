@@ -3,10 +3,6 @@ import { Platform } from 'react-native';
 // For Speed purposes, we are not focused on security, so we are using AsyncStorage Default
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
-export const CUSTOM_SOLANA_DEVNET_RPC_KEY = "customSolanaDevnetRpcUrl";
-
-
-
 
 interface StorageItem<T> {
   value: T;

@@ -1,6 +1,6 @@
 import Svg, { Defs, LinearGradient, Path, Stop, SvgProps } from "react-native-svg";
 
-export interface IconProps {
+interface IconProps {
   props?: SvgProps;
   size?: number;
   color?: string;
@@ -13,7 +13,7 @@ export default function SolanaIcon({ props, size = 18, color }: IconProps) {
       height={size}
       viewBox="0 0 18 18"
       {...props}
-      fill="none"
+      fill={color ?? 'currentColor'}
     >
       <Path
         fill="url(#Solana_svg__a)"
