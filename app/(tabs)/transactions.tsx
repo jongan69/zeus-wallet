@@ -1,13 +1,3 @@
-import { ThemedText as Text } from '@/components/ui/ThemedText';
-import TransactionCard from '@/components/ui/TransactionCard/TransactionCard';
-import { useSolanaWallet } from '@/contexts/SolanaWalletProvider';
-import { useNetworkConfig } from '@/hooks/misc/useNetworkConfig';
-import { useTransactions } from '@/hooks/misc/useTransactions';
-import { useTheme } from '@/hooks/theme/useTheme';
-import { AccountData, Transaction } from '@/types/transaction';
-import { isMobile } from "@/utils/misc";
-import { FlashList } from '@shopify/flash-list';
-
 import React, { useCallback, useState } from 'react';
 import {
   Linking,
@@ -16,6 +6,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+import { FlashList } from '@shopify/flash-list';
+
+import { ThemedText as Text } from '@/components/ui/ThemedText';
+import TransactionCard from '@/components/ui/TransactionCard/TransactionCard';
+import { useSolanaWallet } from '@/contexts/SolanaWalletProvider';
+import { useNetworkConfig } from '@/hooks/misc/useNetworkConfig';
+import { useTransactions } from '@/hooks/misc/useTransactions';
+import { useTheme } from '@/hooks/theme/useTheme';
+import { AccountData, Transaction } from '@/types/transaction';
+import { isMobile } from "@/utils/misc";
 
 const FILTERS = ['All', 'Income', 'Expenses'];
 

@@ -2,7 +2,8 @@ import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { WalletService } from '@/contexts/SolanaWalletProvider';
 import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
-import Toast from 'react-native-toast-message';
+import { notifySuccess } from '@/utils/notification';
+
 import "../polyfills";
 
 export default function IndexRedirect() {
@@ -14,10 +15,7 @@ export default function IndexRedirect() {
       WalletService.loadWallet().then(async (wallet) => {
         if (wallet !== null) {
           setHasWallet(true);
-          Toast.show({
-            text1: 'Wallet loaded!',
-            type: 'success',
-          });
+          notifySuccess('Wallet loaded!');
           await connectDerivedWallet();
         } else {
           setHasWallet(false);

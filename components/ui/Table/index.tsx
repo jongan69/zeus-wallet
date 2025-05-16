@@ -385,13 +385,13 @@ const TableCell = ({
                 Copied
               </Tooltip>
             )}
-            <Icon name={rightIcon} size={18} style={styles.icon} />
+            <Icon name={rightIcon} size={18} />
           </TouchableOpacity>
         ) : rightIcon ? (
-          <Icon name={rightIcon} size={18} style={styles.icon} />
+          <Icon name={rightIcon} size={18} />
         ) : null}
         {showLockIcon && (
-          <Icon name="Lock" size={18} style={styles.lockIcon} />
+          <Icon name="Lock" size={18} />
         )}
       </View>
     </View>

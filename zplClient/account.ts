@@ -272,7 +272,7 @@ export class AccountService {
   }
 
   async getColdReserveBuckets() {
-    console.log("[getColdReserveBuckets] called");
+    // console.log("[getColdReserveBuckets] called");
     // console.log("[getColdReserveBuckets] this.twoWayPegProgramId", this.twoWayPegProgramId.toBase58());
     
     const filters = [

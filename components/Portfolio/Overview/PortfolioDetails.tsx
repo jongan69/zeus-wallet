@@ -17,13 +17,17 @@ const PortfolioDetails = ({
   positions,
   zbtcBalance,
   zbtcBalanceInVault,
+  signPsbt,
 }: {
   btcPrice: number;
   tbtcBalance: number;
   positions: Position[] | undefined;
   zbtcBalance: BigNumber;
   zbtcBalanceInVault: BigNumber;
+  signPsbt: (psbt: any) => Promise<string>;
 }) => {
+  // const { publicKey } = useSolanaWallet();
+  // const { nativeBalance } = useHoldings(publicKey!);
   const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const { theme } = useTheme();
@@ -63,7 +67,7 @@ const PortfolioDetails = ({
           assetFrom={{ name: "tBTC", amount: "0", isLocked: false }}
           assetTo={{ name: "zBTC", amount: "0", isLocked: false }}
           isDepositAll={false}
-          signPsbt={async () => ""}
+          signPsbt={signPsbt}
           updateTransactions={async () => {}}
           resetProvideAmountValue={() => {}}
         />
@@ -125,7 +129,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     gap: 32,
-    paddingBottom: 100,
+    // paddingBottom: 100,
   },
   card: {
     // backgroundColor: "#fff",

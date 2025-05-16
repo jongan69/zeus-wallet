@@ -40,7 +40,7 @@ const useBalance = (solanaPubkey: PublicKey | null) => {
       dedupingInterval: 30000,
     }
   );
-  console.log("[useBalance] data", data, solanaPubkey, connection, zplClient?.assetMint);
+  // console.log("[useBalance] data", data, solanaPubkey, connection, zplClient?.assetMint);
   return {
     data: data ?? new BigNumber(0),
     isLoading,

@@ -43,7 +43,7 @@ export default function TransactionCard({
   const isZeusInteraction = transaction.accountData.some(
     (t: AccountData) => t.account === guardianAddress
   );
-  console.log("isZeusInteraction", isZeusInteraction, guardianAddress, transaction.accountData);
+  // console.log("isZeusInteraction", isZeusInteraction, guardianAddress, transaction.accountData);
 
   const userTransfer = transaction.nativeTransfers.find(
     (t) =>

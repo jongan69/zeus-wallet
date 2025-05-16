@@ -48,7 +48,7 @@ const TextField = ({
         ) : null}
         {showBalance && (
           <View style={styles.balanceRow}>
-            <Icon name="WalletSmall" size={12} style={styles.iconMute} />
+            <Icon name="WalletSmall" size={12} />
             <View style={styles.balanceValueRow}>
               <Text style={styles.balanceValueText}>
                 {balanceValue}{" "}
@@ -57,7 +57,7 @@ const TextField = ({
                 ) : null}
               </Text>
               {showLockIcon && (
-                <Icon name="Locks" size={14} style={styles.iconMute} />
+                <Icon name="Locks" size={14} />
               )}
             </View>
           </View>
@@ -89,7 +89,7 @@ const TextField = ({
           {/* Invalid message for generic input */}
           {type === "generic" && invalid && (
             <View style={styles.invalidRow}>
-              <Icon name="NoteSmall" size={12} style={styles.iconError} />
+              <Icon name="NoteSmall" size={12} />
               <Text style={styles.invalidText}>{invalidMessage}</Text>
             </View>
           )}
@@ -102,7 +102,7 @@ const TextField = ({
                   <Text style={styles.secondaryValueText}>{secondaryValue}</Text>
                 ) : (
                   <View style={styles.invalidRow}>
-                    <Icon name="NoteSmall" size={12} style={styles.iconError} />
+                    <Icon name="NoteSmall" size={12} />
                     <Text style={styles.invalidText}>{invalidMessage}</Text>
                   </View>
                 )}

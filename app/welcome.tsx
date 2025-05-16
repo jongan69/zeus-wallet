@@ -2,23 +2,20 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import Toast from 'react-native-toast-message';
 
 import ParallaxScrollView from '@/components/ui/ParallaxScrollView';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { ThemedView } from '@/components/ui/ThemedView';
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { WalletService } from '@/contexts/SolanaWalletProvider';
+import { notifySuccess } from '@/utils/notification';
 
 export default function WelcomeScreen() {
   const { connectDerivedWallet } = useBitcoinWallet();
   const handleGetStarted = async () => {
     // First, create a new wallet
     await WalletService.createWallet().then(async () => {
-      Toast.show({
-        text1: 'Wallet created!',
-        type: 'success',
-      });
+      notifySuccess('Wallet created!');
     }).then(async () => {
       await WalletService.loadWallet();
       await connectDerivedWallet();

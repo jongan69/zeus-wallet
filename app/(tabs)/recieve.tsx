@@ -1,16 +1,91 @@
-import Icon from "@/components/ui/Icons";
-import { ThemedButton as Button } from "@/components/ui/ThemedButton";
-import ClaimWidget from "@/components/Widgets/ClaimWidget/ClaimWidget";
-import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
-import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
-import { capitalizeFirstLetter } from "@/utils/format";
-import * as Clipboard from 'expo-clipboard';
 import React, { useEffect, useState } from "react";
-import { Alert, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
+import * as Clipboard from 'expo-clipboard';
 import QRCode from "react-native-qrcode-svg";
 
-export default function ClaimPage() {
-  const { getCurrentWallet, isAuthenticated: solanaWalletConnected, login: loginSolana } = useSolanaWallet();
+import Icon from "@/components/ui/Icons";
+import { ThemedButton as Button } from "@/components/ui/ThemedButton";
+import { ThemedText } from '@/components/ui/ThemedText';
+import ClaimWidget from "@/components/Widgets/ClaimWidget/ClaimWidget";
+
+import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
+import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
+import { useHoldings } from "@/hooks/misc/useHoldings";
+import { capitalizeFirstLetter } from "@/utils/format";
+import { notifyError } from "@/utils/notification";
+
+function HoldingCard({ holding }: { holding: any }) {
+  const [meta, setMeta] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    async function fetchMeta() {
+      setLoading(true);
+      setError(null);
+      try {
+        if (holding.content?.json_uri) {
+          const res = await fetch(holding.content.json_uri);
+          const data = await res.json();
+          if (isMounted) setMeta(data);
+        }
+      } catch (e: any) {
+        if (isMounted) {
+          setError('Failed to load metadata');
+          notifyError(`Failed to load metadata: ${e.message}`);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    fetchMeta();
+    return () => { isMounted = false; };
+  }, [holding]);
+
+  return (
+    <View style={{
+      width: '100%',
+      backgroundColor: '#292b32',
+      borderRadius: 10,
+      padding: 12,
+      marginBottom: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      shadowColor: '#ffa794',
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+    }}>
+      {loading ? (
+        <Icon name="Processing" size={32} color="#ffa794" />
+      ) : error ? (
+        <Icon name="Error" size={32} color="#ffa794" />
+      ) : meta && meta.image ? (
+        <Image source={{ uri: meta.image }} style={{ width: 48, height: 48, borderRadius: 8, marginRight: 12 }} />
+      ) : (
+        <Icon name="Unknown" size={32} color="#aaa" />
+      )}
+      <View style={{ flex: 1 }}>
+        <ThemedText type="subtitle" style={{ color: '#fff', marginBottom: 2 }}>
+          {meta?.name || holding.id.slice(0, 8) + '...'}
+        </ThemedText>
+        <ThemedText style={{ color: '#aaa', fontSize: 13 }}>
+          {holding.id.slice(0, 16) + '...'}
+        </ThemedText>
+      </View>
+      <TouchableOpacity onPress={() => Clipboard.setStringAsync(holding.id)} style={{ marginLeft: 8 }}>
+        <Icon name="Copy" size={20} color="#ffa794" />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+export default function RecieveScreen() {
+  const { publicKey, getCurrentWallet, isAuthenticated: solanaWalletConnected, login: loginSolana } = useSolanaWallet();
+  const { holdings, loading: isHoldingsLoading, error: holdingsError, refetch: refetchHoldings } = useHoldings(publicKey!);
+  
   const {
     wallet: bitcoinWallet,
     connectDerivedWallet,
@@ -144,6 +219,28 @@ export default function ClaimPage() {
         {copiedSolana && <Text style={styles.copiedText}>Copied!</Text>}
       </View>
 
+      {/* Holdings UI */}
+      <View style={styles.holdingsContainer}>
+        <Button
+          title={isHoldingsLoading ? 'Refreshing...' : 'Refresh Holdings'}
+          onPress={refetchHoldings}
+          disabled={isHoldingsLoading}
+          style={{ marginBottom: 10, alignSelf: 'flex-end', minWidth: 140 }}
+        />
+        <Text style={styles.holdingsHeader}>Your Solana Holdings</Text>
+        {isHoldingsLoading ? (
+          <View style={styles.holdingsLoading}><Icon name="Processing" size={20} color="#ffa794" /><Text style={styles.holdingsLoadingText}>Loading holdings...</Text></View>
+        ) : holdingsError ? (
+          <Text style={styles.holdingsError}>Failed to load holdings: {holdingsError}</Text>
+        ) : holdings && holdings.length === 0 ? (
+          <Text style={styles.holdingsEmpty}>No holdings found.</Text>
+        ) : (
+          holdings.map((holding, idx) => (
+            <HoldingCard key={holding.id || idx} holding={holding} />
+          ))
+        )}
+      </View>
+
       <View style={styles.claimWidgetWrapper}>
         <ClaimWidget />
       </View>
@@ -266,5 +363,38 @@ const styles = StyleSheet.create({
   switchTextActive: {
     color: "#181A20",
     fontWeight: "700",
+  },
+  holdingsContainer: {
+    width: "100%",
+    backgroundColor: "#23242a",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    alignItems: "center",
+  },
+  holdingsHeader: {
+    color: "#ffa794",
+    fontWeight: "600",
+    marginBottom: 6,
+    fontSize: 15,
+  },
+  holdingsLoading: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  holdingsLoadingText: {
+    color: "#fff",
+    marginLeft: 8,
+  },
+  holdingsError: {
+    color: "#ffa794",
+    marginTop: 4,
+    fontSize: 13,
+  },
+  holdingsEmpty: {
+    color: "#aaa",
+    marginTop: 4,
+    fontSize: 13,
   },
 });

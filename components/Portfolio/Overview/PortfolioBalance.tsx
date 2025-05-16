@@ -15,10 +15,16 @@ const PortfolioBalance = ({
   btcPrice,
   zbtcBalance,
   zbtcBalanceInVault,
+  nativeBalance,
 }: {
   btcPrice: number;
   zbtcBalance: BigNumber;
   zbtcBalanceInVault: BigNumber;
+  nativeBalance: {
+    lamports: number;
+    price_per_sol: number;
+    total_price: number;
+  };
 }) => {
   const totalBalance = zbtcBalance.plus(zbtcBalanceInVault ?? new BigNumber(0));
   const { theme } = useTheme();
@@ -52,15 +58,28 @@ const PortfolioBalance = ({
                 </View>
                 <Text style={[styles.usdValue, { color: textColor }]}>
                   ~$ {totalBalance.gt(0)
-                    ? formatValue(
-                        totalBalance
-                          .div(10 ** BTC_DECIMALS)
-                          .multipliedBy(btcPrice),
-                        2
-                      )
+                    ? formatValue(totalBalance.div(10 ** BTC_DECIMALS).multipliedBy(btcPrice), 2)
                     : 0} USD
                 </Text>
               </View>
+              <View style={styles.balanceRow}>
+                <View style={styles.balanceIconRow}>
+                  <Icon name="solana" size={18} />
+                  <Text style={[styles.balanceValue, { color: textColor }]}>
+                    <Text style={styles.balanceValueNumber}>
+                      {nativeBalance.lamports
+                        ? formatValue(nativeBalance.lamports / 10 ** 9, 6)
+                        : 0}
+                    </Text>{" "}SOL
+                  </Text>
+                </View>
+                <Text style={[styles.usdValue, { color: textColor }]}>
+                  ~$ {nativeBalance.total_price > 0
+                    ? formatValue(nativeBalance.total_price, 2)
+                    : 0} USD
+                </Text>
+              </View>
+
             </View>
 
             {/* Pie Chart and Key */}
@@ -82,9 +101,9 @@ const PortfolioBalance = ({
                   <Text style={[styles.keyPercent, { color: textColor }]}>
                     {totalBalance.gt(0)
                       ? formatValue(
-                          zbtcBalance.div(totalBalance).multipliedBy(100),
-                          0
-                        )
+                        zbtcBalance.div(totalBalance).multipliedBy(100),
+                        0
+                      )
                       : "0"}
                     %
                   </Text>
@@ -98,8 +117,8 @@ const PortfolioBalance = ({
                   <Text style={[styles.keyPercent, { color: textColor }]}>
                     {totalBalance.gt(0)
                       ? formatValue(
-                          zbtcBalanceInVault.div(totalBalance).multipliedBy(100)
-                        )
+                        zbtcBalanceInVault.div(totalBalance).multipliedBy(100)
+                      )
                       : "0"}
                     %
                   </Text>

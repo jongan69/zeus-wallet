@@ -7,6 +7,10 @@ import {
   Switch,
   useWindowDimensions,
 } from 'react-native';
+import { router } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
+import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
+import { notifySuccess, notifyError } from '@/utils/notification';
 
 import { ExternalLink } from '@/components/ui/ExternalLink';
 import Icon from '@/components/ui/Icons';
@@ -18,10 +22,9 @@ import { ThemedView as View } from '@/components/ui/ThemedView';
 import { useSolanaWallet, WalletService } from '@/contexts/SolanaWalletProvider';
 import { useTheme } from '@/hooks/theme/useTheme';
 import { PublicKey } from '@solana/web3.js';
-import * as Clipboard from 'expo-clipboard';
-import { router } from 'expo-router';
-import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
-import Toast from 'react-native-toast-message';
+
+
+
 
 export async function RequestAirdrop(publicKey: PublicKey) {
   if (!publicKey) {
@@ -31,12 +34,12 @@ export async function RequestAirdrop(publicKey: PublicKey) {
     const res = await fetch(`/api/airdrop?address=${publicKey.toBase58()}`);
     const data = await res.json();
     if (data.result) {
-      Toast.show({ text1: 'Airdrop requested!', type: 'success' });
+      notifySuccess('Airdrop requested!');
     } else {
-      Toast.show({ text1: 'Airdrop failed', text2: data.error?.message || 'Unknown error', type: 'error' });
+      notifyError(`Airdrop failed: ${data.error?.message || 'Unknown error'}`);
     }
   } catch (e) {
-    Toast.show({ text1: 'Airdrop failed', text2: String(e), type: 'error' });
+    notifyError(`Airdrop failed: ${String(e)}`);
   }
 }
 
@@ -137,12 +140,9 @@ const SecurityTab = () => {
       const wallet = await WalletService.loadWallet();
       console.log('wallet', wallet);
       setShowResetModal(false);
-      Toast.show({
-        text1: 'Wallet reset!',
-        type: 'success',
-      });
+      notifySuccess('Wallet reset!');
     } catch (e) {
-      Alert.alert('Error', 'Failed to reset wallet: ' + e);
+      notifyError(`Failed to reset wallet: ${String(e)}`);
     } finally {
       setResetting(false);
       router.replace('/welcome');

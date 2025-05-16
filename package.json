@@ -17,6 +17,7 @@
     "@bitcoinerlab/secp256k1": "^1.2.0",
     "@coral-xyz/borsh": "^0.31.1",
     "@expo/vector-icons": "^14.1.0",
+    "@mayanfinance/swap-sdk": "^10.5.0",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/checkbox": "^0.5.17",
     "@react-navigation/bottom-tabs": "^7.3.10",
@@ -25,6 +26,7 @@
     "@shopify/flash-list": "^1.7.6",
     "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.2",
+    "@walletconnect/modal-react-native": "^1.1.0",
     "axios": "^1.9.0",
     "bitcoinjs-lib": "^6.1.7",
     "bn.js": "^5.2.2",
@@ -73,7 +75,8 @@
     "swr": "^2.3.3",
     "text-encoding": "^0.7.0",
     "tweetnacl": "^1.0.3",
-    "zustand": "^5.0.4"
+    "zustand": "^5.0.4",
+    "expo-application": "~6.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

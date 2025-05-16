@@ -1,16 +1,21 @@
-import { ThemedButton as Button } from '@/components/ui/ThemedButton';
-import { ThemedText as Text } from '@/components/ui/ThemedText';
-import { useBitcoinWallet } from '@/contexts/BitcoinWalletProvider';
-import { formatBitcoinAddress, formatSolanaAddress } from '@/utils/format';
-import { Ionicons } from '@expo/vector-icons';
-import { PublicKey } from '@solana/web3.js';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Animated, Easing, Modal, Platform, Animated as RNAnimated, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+
 import { BlurView } from 'expo-blur';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Easing, Modal, Platform, Animated as RNAnimated, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+import { ThemedButton as Button } from '@/components/ui/ThemedButton';
+import { ThemedText as Text } from '@/components/ui/ThemedText';
+import { useBitcoinWallet } from '@/contexts/BitcoinWalletProvider';
+import { formatBitcoinAddress, formatSolanaAddress } from '@/utils/format';
+import { PublicKey } from '@solana/web3.js';
+
+
 const CARD_RADIUS = 36;
+
 const baseCard = {
   borderRadius: CARD_RADIUS,
   alignItems: 'center' as const,
@@ -25,6 +30,7 @@ const baseCard = {
 const CURRENCY_SCHEME_TO_TICKER: Record<string, string> = {
   bitcoin: 'BTC',
   solana: 'SOL',
+  ethereum: 'ETH',
   // Add more as needed
 };
 
@@ -103,7 +109,6 @@ function CameraModal({
   visible,
   onClose,
   permission,
-  requestPermission,
   scanned,
   isLoading,
   handleBarCodeScanned,
@@ -371,7 +376,6 @@ export default function PayScreen() {
           visible={showCamera}
           onClose={() => setShowCamera(false)}
           permission={permission}
-          requestPermission={requestPermission}
           scanned={scanned}
           isLoading={isLoading}
           handleBarCodeScanned={handleBarCodeScanned}

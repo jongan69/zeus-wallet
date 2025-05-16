@@ -57,5 +57,12 @@ const notifyInfo = (message: string) => {
   });
 };
 
-export { notifyError, notifyInfo, notifySuccess, notifyTx };
+const notifyWarning = (message: string) => {
+  Toast.show({
+    type: 'warning',
+    text1: 'Warning',
+    text2: message,
+  });
+};
+export { notifyError, notifyInfo, notifySuccess, notifyTx, notifyWarning };
 

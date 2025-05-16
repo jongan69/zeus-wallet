@@ -63,11 +63,11 @@ const Button = ({
     >
       {isLoading && <ButtonLoader />}
       {!isLoading && icon && iconPosition === "left" && (
-        <Icon name={icon} size={18} style={{ marginRight: !hideLabel ? 8 : 0 }} />
+        <Icon name={icon} size={18}/>
       )}
       {!isLoading && !hideLabel && <Text style={[styles.label, { color: theme === "light" ? "#000" : "#000" }]}>{label}</Text>}
       {!isLoading && icon && iconPosition === "right" && (
-        <Icon name={icon} size={18} style={{ marginLeft: !hideLabel ? 8 : 0 }} />
+        <Icon name={icon} size={18} />
       )}
     </TouchableOpacity>
   );

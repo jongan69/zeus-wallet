@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Modal as RNModal, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
-import Toast from "react-native-toast-message";
 
 import Button from "@/components/ui/Button/Button";
 import Icon from "@/components/ui/Icons";
 import { IconName } from "@/components/ui/Icons/icons";
 import { ThemedText } from "@/components/ui/ThemedText";
 import { ThemedView } from "@/components/ui/ThemedView";
+import { notifyError, notifySuccess, notifyTx } from "@/utils/notification";
 
 import { btcToSatoshi, constructDepositToHotReserveTx, convertBitcoinNetwork } from "@/bitcoin";
 import { getInternalXOnlyPubkeyFromUserWallet } from "@/bitcoin/wallet";
@@ -20,16 +20,20 @@ import { useThemeColor } from "@/hooks/theme/useThemeColor";
 import useHotReserveBucketActions from "@/hooks/zpl/useHotReserveBucketActions";
 
 import usePersistentStore from "@/stores/persistentStore";
-import { InteractionType } from "@/types/api";
+import { InteractionStatus, InteractionType } from "@/types/api";
 import { CheckBucketResult } from "@/types/misc";
 import { Chain } from "@/types/network";
 import { Position } from "@/types/zplClient";
-import { BTC_DECIMALS } from "@/utils/constant";
+import { BTC_DECIMALS, SOLANA_TX_FEE_IN_LAMPORT } from "@/utils/constant";
 
-import { notifyTx } from "@/utils/notification";
+import { sendTransaction } from "@/bitcoin/rpcClient";
+import { useHoldings } from "@/hooks/misc/useHoldings";
+import { createAxiosInstances } from "@/utils/axios";
+import { setLocalStorage } from "@/utils/localStorage";
 import { BigNumber } from "bignumber.js";
 import { payments } from "bitcoinjs-lib";
-
+import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371";
+import BN from "bn.js";
 
 export interface DepositModalProps {
     isOpen: boolean;
@@ -65,6 +69,7 @@ export default function DepositModal({
     // const solanaNetwork = usePersistentStore((state) => state.solanaNetwork);
     const bitcoinNetwork = usePersistentStore((state) => state.bitcoinNetwork);
     const { publicKey: solanaPubkey } = useSolanaWallet();
+    const { nativeBalance } = useHoldings(solanaPubkey!);
     const { wallet: bitcoinWallet } = useBitcoinWallet();
     const zplClient = useZplClient();
     const networkConfig = useNetworkConfig();
@@ -94,11 +99,13 @@ export default function DepositModal({
             const check = await checkHotReserveBucketStatus();
             // console.log("[DepositModal] checkHotReserveBucketStatus", check);
             if (check?.status === CheckBucketResult.NotFound) {
-                setShowCreateAccountModal(true);
+                if (nativeBalance.lamports > SOLANA_TX_FEE_IN_LAMPORT) {    
+                    setShowCreateAccountModal(true);
+                }
             }
         }
         check();
-    }, [checkHotReserveBucketStatus]);
+    }, [checkHotReserveBucketStatus, nativeBalance]);
 
     const { data: bitcoinUTXOs } = useBitcoinUTXOs(bitcoinWallet?.p2tr);
 
@@ -137,92 +144,138 @@ export default function DepositModal({
     };
 
     const handleConfirmDeposit = async () => {
-        console.log("[DepositModal] handleConfirmDeposit called");
-        if (!zplClient || !solanaPubkey || !bitcoinWallet) {
-            console.log("[DepositModal] Missing zplClient, solanaPubkey, or bitcoinWallet", { zplClient, solanaPubkey, bitcoinWallet });
-            return;
-        }
+        if (!zplClient || !solanaPubkey || !bitcoinWallet) return;
         if (!bitcoinUTXOs || bitcoinUTXOs.length === 0) {
-            console.log("[DepositModal] No UTXOs available", { bitcoinUTXOs });
             setErrorMessage("No UTXOs available");
             return;
         }
+
         setIsDepositing(true);
         setErrorMessage("");
+
         try {
             const userXOnlyPublicKey = getInternalXOnlyPubkeyFromUserWallet(bitcoinWallet);
-            console.log("[DepositModal] userXOnlyPublicKey", userXOnlyPublicKey);
             if (!userXOnlyPublicKey) throw new Error("User X Only Public Key not found");
+
+            // Get hot reserve buckets
             const hotReserveBuckets = await zplClient.getHotReserveBucketsByBitcoinXOnlyPubkey(userXOnlyPublicKey);
-            console.log("[DepositModal] hotReserveBuckets", hotReserveBuckets);
             if (!hotReserveBuckets || hotReserveBuckets.length === 0) {
                 setErrorMessage("No hot reserve address found");
                 setShowCreateAccountModal(true);
                 setIsDepositing(false);
                 return;
             }
+
             const targetHotReserveBucket = hotReserveBuckets.find(
                 (bucket) => bucket.guardianSetting.toBase58() === networkConfig.guardianSetting
             );
-            console.log("[DepositModal] targetHotReserveBucket", targetHotReserveBucket);
             if (!targetHotReserveBucket) throw new Error("Wrong guardian setting");
+
             const { address: targetHotReserveAddress } = payments.p2tr({
                 pubkey: Buffer.from(targetHotReserveBucket.taprootXOnlyPublicKey),
                 network: convertBitcoinNetwork(bitcoinNetwork),
             });
-            console.log("[DepositModal] targetHotReserveAddress", targetHotReserveAddress);
             if (!targetHotReserveAddress) {
                 setErrorMessage("Hot reserve address not found");
                 setIsDepositing(false);
                 return;
             }
-            let depositPsbt;
+
+            // Use actual feeRate from config or user input if available
+            const feeRate = 1; // TODO: Replace with actual feeRate from config or user input
+
+            // Build deposit PSBT and get usedUTXOs
+            let depositPsbt, usedBitcoinUTXOs;
             try {
-                const { psbt } = constructDepositToHotReserveTx(
+                const { psbt, usedUTXOs } = constructDepositToHotReserveTx(
                     bitcoinUTXOs,
                     targetHotReserveAddress,
                     btcToSatoshi(parseFloat(inputAmount)),
                     userXOnlyPublicKey,
-                    1, // TODO: use actual feeRate from config or user input
+                    feeRate,
                     convertBitcoinNetwork(bitcoinNetwork),
                     isDepositAll
                 );
                 depositPsbt = psbt;
-                console.log("[DepositModal] Constructed depositPsbt", depositPsbt);
-                Toast.show({
-                    text1: "Deposit transaction constructed!",
-                    type: "success",
-                });
+                usedBitcoinUTXOs = usedUTXOs;
+                notifySuccess("Deposit transaction constructed!");
             } catch (e) {
-                console.log("[DepositModal] Error constructing deposit transaction", e);
                 setErrorMessage(e instanceof Error ? e.message : "Failed to construct deposit transaction");
                 setIsDepositing(false);
                 return;
             }
+
+            // Sign and broadcast
             try {
-                console.log("[DepositModal] Signing PSBT", depositPsbt);
                 const signedPsbt = await signPsbt(depositPsbt, true);
-                console.log("[DepositModal] Signed PSBT", signedPsbt);
-                // TODO: send transaction to backend and update local state as in web modal
+
+                // Broadcast to backend
+                const { aresApi } = createAxiosInstances(
+                    usePersistentStore.getState().solanaNetwork,
+                    bitcoinNetwork
+                );
+                console.log("[DepositModal] Broadcasting transaction:", signedPsbt);
+                const txId = await sendTransaction(aresApi, signedPsbt);
+
+                // Build interaction object
+                const createdAt = Math.floor(Date.now() / 1000);
+                const amount = depositPsbt.txOutputs[0].value;
+                let interaction_id = "";
+                if (zplClient.deriveInteraction) {
+                    interaction_id = zplClient.deriveInteraction(
+                        Buffer.from(txId, "hex"),
+                        new BN(0)
+                    ).toBase58();
+                }
+
+                const transaction = {
+                    status: InteractionStatus.BitcoinDepositToHotReserve,
+                    interaction_id,
+                    interaction_type: InteractionType.Deposit,
+                    source: toXOnly(Buffer.from(bitcoinWallet.pubkey, "hex")).toString("hex"),
+                    destination: solanaPubkey.toBase58(),
+                    amount: amount.toString(),
+                    initiated_at: createdAt,
+                    current_step_at: createdAt,
+                    app_developer: "Orpheus",
+                    miner_fee: minerFee.toString(),
+                    service_fee: "0",
+                    steps: [
+                        {
+                            chain: Chain.Bitcoin,
+                            action: "DepositToHotReserve",
+                            transaction: txId,
+                            timestamp: createdAt,
+                        },
+                    ],
+                };
+
+                // Store transaction and UTXOs locally (cross-platform)
+                await setLocalStorage(
+                    `tx:${bitcoinNetwork}:${solanaPubkey.toBase58()}:${txId}`,
+                    transaction
+                );
+                await setLocalStorage(
+                    `utxos:${bitcoinWallet.p2tr}:${txId}`,
+                    usedBitcoinUTXOs
+                );
+
                 setTimeout(async () => {
-                    console.log("[DepositModal] Updating transactions after deposit");
                     await updateTransactions();
                     setIsDepositing(false);
                     resetProvideAmountValue();
                     notifyTx(true, {
                         chain: Chain.Bitcoin,
-                        txId: "", // TODO: get txId from backend response
+                        txId,
                         type: InteractionType.Deposit,
                     });
                     onClose();
                 }, 2000);
             } catch (signError) {
-                console.log("[DepositModal] Deposit failed during signPsbt", signError);
-                setErrorMessage("Deposit failed: Please try again later");
+                setErrorMessage("Deposit failed: Please try again later: " + signError);
                 setIsDepositing(false);
             }
         } catch (error) {
-            console.log("[DepositModal] Deposit failed (outer catch)", error);
             setErrorMessage(error instanceof Error ? error.message : "Deposit failed");
             setIsDepositing(false);
         }
@@ -230,6 +283,11 @@ export default function DepositModal({
 
     const handleCreateAccount = async () => {
         console.log("[CreateAccount] Called");
+        if (nativeBalance.lamports <= SOLANA_TX_FEE_IN_LAMPORT) {
+            notifyError("Not enough SOL to create an account. Please deposit more SOL.");
+            setErrorMessage("Not enough SOL to create an account.");
+            return;
+        }
         setIsDepositing(true);
         try {
             console.log("[CreateAccount] createHotReserveBucket:", createHotReserveBucket);
@@ -241,28 +299,27 @@ export default function DepositModal({
             }
             await createHotReserveBucket();
             console.log("[CreateAccount] Account created, closing modal");
-            Toast.show({
-                text1: "Account created!",
-                type: "success",
-            });
+            notifySuccess("Account created!");
             setShowCreateAccountModal(false);
             console.log("[CreateAccount] Re-triggering deposit flow");
 
             setIsDepositing(true);
         } catch (e) {
             console.log("[CreateAccount] Error:", e);
-            Toast.show({
-                text1: "Make sure you have SOL in your wallet.",
-                type: "error",
-            });
+            notifyError("Make sure you have SOL in your wallet.");
             setErrorMessage("Failed to create account. Please try again. Error: " + e);
         } finally {
             setIsDepositing(false);
         }
     };
 
+    const handleClose = () => {
+        setErrorMessage("");
+        onClose();
+    };
+
     return (
-        <RNModal visible={isOpen || showCreateAccountModal} transparent animationType="slide" onRequestClose={onClose}>
+        <RNModal visible={isOpen || showCreateAccountModal} transparent animationType="slide" onRequestClose={handleClose}>
             <ThemedView style={styles.modalBackdrop}>
                 <ThemedView style={styles.modalContainer}>
                     {showCreateAccountModal ? (
@@ -318,7 +375,7 @@ export default function DepositModal({
                             </View>
                             {/* Actions */}
                             <View style={styles.actions}>
-                                <Button label="Cancel" type="secondary" onClick={onClose} />
+                                <Button label="Cancel" type="secondary" onClick={handleClose} />
                                 <Button
                                     label="Confirm"
                                     type="primary"
