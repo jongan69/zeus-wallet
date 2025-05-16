@@ -4,10 +4,10 @@ import { Alert, Image, ScrollView, Share, StyleSheet, Text, TouchableOpacity, Vi
 import * as Clipboard from 'expo-clipboard';
 import QRCode from "react-native-qrcode-svg";
 
+import ClaimWidget from "@/components/ClaimWidget/ClaimWidget";
 import Icon from "@/components/ui/Icons";
 import { ThemedButton as Button } from "@/components/ui/ThemedButton";
 import { ThemedText } from '@/components/ui/ThemedText';
-import ClaimWidget from "@/components/Widgets/ClaimWidget/ClaimWidget";
 
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";

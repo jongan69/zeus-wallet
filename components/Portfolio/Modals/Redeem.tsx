@@ -96,23 +96,32 @@ export default function RedeemModal({
   };
 
   const handleRedeem = async () => {
-    if (!redeemAmount || !zplClient || !solanaPubkey) return;
+    console.log("[RedeemModal] handleRedeem called", { redeemAmount, zplClient, solanaPubkey });
+    if (!redeemAmount || !zplClient || !solanaPubkey) {
+      console.log("[RedeemModal] Missing redeemAmount, zplClient, or solanaPubkey", { redeemAmount, zplClient, solanaPubkey });
+      return;
+    }
     setIsRedeeming(true);
 
     try {
-      if (!positions) return;
+      if (!positions) {
+        console.log("[RedeemModal] No positions found");
+        return;
+      }
 
-      const sortedPositions = positions.toSorted((a, b) =>
+      const sortedPositions = positions.slice().sort((a, b) =>
         b.storedAmount
           .sub(b.frozenAmount)
           .cmp(a.storedAmount.sub(a.frozenAmount))
       );
+      console.log("[RedeemModal] Sorted positions", sortedPositions);
 
       const redeemAmountBN = new BN(
         new BigNumber(redeemAmount)
           .multipliedBy(new BigNumber(10).pow(BTC_DECIMALS))
           .toString()
       );
+      console.log("[RedeemModal] redeemAmountBN", redeemAmountBN.toString());
 
       const ixs: TransactionInstruction[] = [];
 
@@ -122,18 +131,25 @@ export default function RedeemModal({
           position.storedAmount.sub(position.frozenAmount),
           remainingAmount
         );
+        console.log("[RedeemModal] Position", position, "amountToRedeem", amountToRedeem.toString());
 
         const twoWayPegGuardianSetting = config.guardianSetting;
 
-        if (!twoWayPegGuardianSetting)
+        if (!twoWayPegGuardianSetting) {
+          console.error("[RedeemModal] Two way peg guardian setting not found");
           throw new Error("Two way peg guardian setting not found");
+        }
 
-        if (!zplClient?.assetMint) throw new Error("Asset mint not found");
+        if (!zplClient?.assetMint) {
+          console.error("[RedeemModal] Asset mint not found");
+          throw new Error("Asset mint not found");
+        }
         const receiverAta = getAssociatedTokenAddressSync(
           zplClient.assetMint,
           solanaPubkey,
           true
         );
+        console.log("[RedeemModal] receiverAta", receiverAta.toBase58());
 
         const retrieveIx = zplClient.constructRetrieveIx(
           amountToRedeem,
@@ -154,6 +170,7 @@ export default function RedeemModal({
           );
           // check if the target address has an associated token account
           const info = await connection.getAccountInfo(toATA);
+          console.log("[RedeemModal] toATA", toATA.toBase58(), "info", info);
           if (!info) {
             // if not, create one
             const createIx = createAssociatedTokenAccountInstruction(
@@ -163,6 +180,7 @@ export default function RedeemModal({
               new PublicKey(zplClient.assetMint)
             );
             ixs.push(createIx);
+            console.log("[RedeemModal] Pushed createAssociatedTokenAccountInstruction");
           }
           // add a transfer instruction to transfer the tokens to the receive_address
           const transferIx = createTransferInstruction(
@@ -172,14 +190,18 @@ export default function RedeemModal({
             BigInt(amountToRedeem.toString())
           );
           ixs.push(transferIx);
+          console.log("[RedeemModal] Pushed transferInstruction");
         }
 
         remainingAmount = remainingAmount.sub(amountToRedeem);
+        console.log("[RedeemModal] remainingAmount", remainingAmount.toString());
 
         if (remainingAmount.eq(new BN(0))) break;
       }
 
+      console.log("[RedeemModal] Instructions to send", ixs);
       const sig = await zplClient.signAndSendTransactionWithInstructions(ixs);
+      console.log("[RedeemModal] Transaction signature", sig);
 
       await mutateBalance();
       await mutatePositions();
@@ -192,13 +214,15 @@ export default function RedeemModal({
       });
     } catch (error) {
       if (error instanceof Error) {
+        console.error("[RedeemModal] Sign transaction error", error);
         notifyError("Sign transaction error");
       } else {
+        console.error("[RedeemModal] Error in redeeming", error);
         notifyError("Error in redeeming, please try again");
-        console.error("Error in redeeming", error);
       }
     } finally {
       setIsRedeeming(false);
+      console.log("[RedeemModal] handleRedeem finished");
     }
   };
 

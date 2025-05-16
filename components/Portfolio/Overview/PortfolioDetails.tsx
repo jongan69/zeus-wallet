@@ -36,8 +36,25 @@ const PortfolioDetails = ({
 
   return (
     <View style={[styles.container, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}>
-     {/* tBTC Section */}
-     <View style={styles.card}>
+      {/* Available Section */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}><Text style={{ fontWeight: "bold" }}>Available</Text></Text>
+        <View style={styles.row}>
+          <Icon name="zbtc" size={18} />
+          <Text style={styles.balanceText}>
+            {zbtcBalance.gt(0) ? formatValue(zbtcBalance.div(10 ** BTC_DECIMALS), 6) : 0}{" "}
+            <Text style={styles.tokenText}>zBTC</Text>
+          </Text>
+        </View>
+        <Text style={styles.usdText}>
+          ~${zbtcBalance.gt(0)
+            ? formatValue(zbtcBalance.div(10 ** BTC_DECIMALS).multipliedBy(btcPrice), 2)
+            : 0} USD
+        </Text>
+      </View>
+
+      {/* tBTC Section */}
+      <View style={styles.card}>
         <Text style={styles.sectionTitle}><Text style={{ fontWeight: "bold" }}>tBTC</Text></Text>
         <View style={styles.row}>
           <Icon name="zbtc" size={18} />
@@ -68,26 +85,9 @@ const PortfolioDetails = ({
           assetTo={{ name: "zBTC", amount: "0", isLocked: false }}
           isDepositAll={false}
           signPsbt={signPsbt}
-          updateTransactions={async () => {}}
-          resetProvideAmountValue={() => {}}
+          updateTransactions={async () => { }}
+          resetProvideAmountValue={() => { }}
         />
-      </View>
-
-      {/* Available Section */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}><Text style={{ fontWeight: "bold" }}>Available</Text></Text>
-        <View style={styles.row}>
-          <Icon name="zbtc" size={18} />
-          <Text style={styles.balanceText}>
-            {zbtcBalance.gt(0) ? formatValue(zbtcBalance.div(10 ** BTC_DECIMALS), 6) : 0}{" "}
-            <Text style={styles.tokenText}>zBTC</Text>
-          </Text>
-        </View>
-        <Text style={styles.usdText}>
-          ~${zbtcBalance.gt(0)
-            ? formatValue(zbtcBalance.div(10 ** BTC_DECIMALS).multipliedBy(btcPrice), 2)
-            : 0} USD
-        </Text>
       </View>
 
       {/* Custodial Section */}

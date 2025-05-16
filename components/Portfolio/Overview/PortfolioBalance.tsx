@@ -27,6 +27,7 @@ const PortfolioBalance = ({
   };
 }) => {
   const totalBalance = zbtcBalance.plus(zbtcBalanceInVault ?? new BigNumber(0));
+  console.log("[PortfolioBalance] totalBalance", totalBalance.toString(), "zbtcBalance", zbtcBalance.toString(), "zbtcBalanceInVault", zbtcBalanceInVault.toString());
   const { theme } = useTheme();
 
   // Theme-aware colors

@@ -28,6 +28,7 @@ function describeArc(x: number, y: number, radius: number, startAngle: number, e
 }
 
 const PortfolioPieChart = ({ percentFilled }: { percentFilled: number }) => {
+  console.log("[PortfolioPieChart] percentFilled", percentFilled);
   const animatedValue = useRef(new Animated.Value(0)).current;
   const targetAngle = Math.max(0, Math.min(percentFilled, 100)) * 3.6;
 

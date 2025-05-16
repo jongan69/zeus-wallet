@@ -30,6 +30,8 @@ export default function PortfolioOverview() {
 
   const [refreshing, setRefreshing] = useState(false);
 
+  console.log("[PortfolioOverview] zbtcBalance", zbtcBalance);
+  console.log("[PortfolioOverview] positions", positions);
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([

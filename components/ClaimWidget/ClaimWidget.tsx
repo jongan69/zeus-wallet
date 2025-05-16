@@ -1,4 +1,4 @@
-import "../../../polyfills";
+import "../../polyfills";
 
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
