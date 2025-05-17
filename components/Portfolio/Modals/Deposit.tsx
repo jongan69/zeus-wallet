@@ -8,7 +8,7 @@ import { ThemedText } from "@/components/ui/ThemedText";
 import { ThemedView } from "@/components/ui/ThemedView";
 import { notifyError, notifySuccess, notifyTx } from "@/utils/notification";
 
-import { btcToSatoshi, constructDepositToHotReserveTx, convertBitcoinNetwork } from "@/bitcoin";
+import { btcToSatoshi, constructDepositToHotReserveTx, convertBitcoinNetwork, satoshiToBtc } from "@/bitcoin";
 import { getInternalXOnlyPubkeyFromUserWallet } from "@/bitcoin/wallet";
 
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
@@ -23,22 +23,25 @@ import usePersistentStore from "@/stores/persistentStore";
 import { InteractionStatus, InteractionType } from "@/types/api";
 import { CheckBucketResult } from "@/types/misc";
 import { Chain } from "@/types/network";
-import { Position } from "@/types/zplClient";
-import { BTC_DECIMALS, SOLANA_TX_FEE_IN_LAMPORT } from "@/utils/constant";
+// import { Position } from "@/types/zplClient";
+import { SOLANA_TX_FEE_IN_LAMPORT } from "@/utils/constant";
 
 import { sendTransaction } from "@/bitcoin/rpcClient";
 import { useHoldings } from "@/hooks/misc/useHoldings";
 import { createAxiosInstances } from "@/utils/axios";
+import { getEstimatedLockToColdTransactionFee } from "@/utils/interaction";
 import { setLocalStorage } from "@/utils/localStorage";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { BigNumber } from "bignumber.js";
 import { payments } from "bitcoinjs-lib";
 import { toXOnly } from "bitcoinjs-lib/src/psbt/bip371";
 import BN from "bn.js";
 
-export interface DepositModalProps {
+interface DepositModalProps {
     isOpen: boolean;
     onClose: () => void;
     minerFee: number;
+    setAssetFromAmount: (amount: string) => void;
     assetFrom: { name: string; amount: string; isLocked: boolean };
     assetTo: { name: string; amount: string; isLocked: boolean };
     isDepositAll: boolean;
@@ -46,7 +49,6 @@ export interface DepositModalProps {
     updateTransactions: () => Promise<void>;
     resetProvideAmountValue: () => void;
     btcPrice: number;
-    positions: Position[];
     balance: number;
     max: number;
 }
@@ -55,6 +57,7 @@ export default function DepositModal({
     isOpen,
     onClose,
     minerFee,
+    setAssetFromAmount,
     assetFrom,
     assetTo,
     isDepositAll,
@@ -62,7 +65,6 @@ export default function DepositModal({
     updateTransactions,
     resetProvideAmountValue,
     btcPrice,
-    positions,
     balance,
     max
 }: DepositModalProps) {
@@ -74,10 +76,10 @@ export default function DepositModal({
     const zplClient = useZplClient();
     const networkConfig = useNetworkConfig();
     const [isDepositing, setIsDepositing] = useState(false);
-    const [inputAmount, setInputAmount] = useState("");
+    // const [inputAmount, setInputAmount] = useState("");
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
-    // const { feeRate } = useTwoWayPegConfiguration();
+
 
     const { checkHotReserveBucketStatus, createHotReserveBucket } = useHotReserveBucketActions(bitcoinWallet);
     // const { data: twoWayPegGuardianSettings } = useTwoWayPegGuardianSettings();
@@ -85,9 +87,10 @@ export default function DepositModal({
 
     // console.log("[DepositModal] twoWayPegGuardianSettings", twoWayPegGuardianSettings);
     // console.log("[DepositModal] coldReserveBuckets", coldReserveBuckets);
-    // const estimatedLockToColdFeeInSatoshis = getEstimatedLockToColdTransactionFee(feeRate);
-    // const estimatedLockToColdFeeInBtc = satoshiToBtc(estimatedLockToColdFeeInSatoshis);
-
+    const safeMinerFee = typeof minerFee === "number" && minerFee > 0 ? minerFee : 1;
+    const estimatedLockToColdFeeInSatoshis = getEstimatedLockToColdTransactionFee(safeMinerFee);
+    const estimatedLockToColdFeeInBtc = satoshiToBtc(estimatedLockToColdFeeInSatoshis);
+    console.log("[DepositModal] estimatedLockToColdFeeInBtc", estimatedLockToColdFeeInBtc);
     const noticeBackground = useThemeColor({ light: '#FFF3F0', dark: '#2D2320' }, 'background');
     const noticeText = useThemeColor({ light: '#333', dark: '#ECEDEE' }, 'text');
     const secondaryText = useThemeColor({ light: '#888', dark: '#9BA1A6' }, 'icon');
@@ -99,8 +102,11 @@ export default function DepositModal({
             const check = await checkHotReserveBucketStatus();
             // console.log("[DepositModal] checkHotReserveBucketStatus", check);
             if (check?.status === CheckBucketResult.NotFound) {
-                if (nativeBalance.lamports > SOLANA_TX_FEE_IN_LAMPORT) {    
+                if (nativeBalance.lamports > SOLANA_TX_FEE_IN_LAMPORT) {
                     setShowCreateAccountModal(true);
+                } else {
+                    notifyError(`Need ${new BigNumber(SOLANA_TX_FEE_IN_LAMPORT).div(LAMPORTS_PER_SOL).toFixed(6)} SOL to create an account`);
+                    setErrorMessage(`Need ${new BigNumber(SOLANA_TX_FEE_IN_LAMPORT).div(LAMPORTS_PER_SOL).toFixed(6)} SOL to create an account`);
                 }
             }
         }
@@ -133,14 +139,14 @@ export default function DepositModal({
             } else {
                 handleErrorMessage("");
             }
-            setInputAmount(inputValue);
+            setAssetFromAmount(inputValue);
         }
     };
 
     const handleMax = () => {
         if (!max) return;
         handleErrorMessage("");
-        setInputAmount(max.toFixed(6));
+        setAssetFromAmount(max.toFixed(6));
     };
 
     const handleConfirmDeposit = async () => {
@@ -182,7 +188,6 @@ export default function DepositModal({
             }
 
             // Use actual feeRate from config or user input if available
-            const feeRate = 1; // TODO: Replace with actual feeRate from config or user input
 
             // Build deposit PSBT and get usedUTXOs
             let depositPsbt, usedBitcoinUTXOs;
@@ -190,9 +195,9 @@ export default function DepositModal({
                 const { psbt, usedUTXOs } = constructDepositToHotReserveTx(
                     bitcoinUTXOs,
                     targetHotReserveAddress,
-                    btcToSatoshi(parseFloat(inputAmount)),
+                    btcToSatoshi(parseFloat(assetFrom.amount)),
                     userXOnlyPublicKey,
-                    feeRate,
+                    safeMinerFee,
                     convertBitcoinNetwork(bitcoinNetwork),
                     isDepositAll
                 );
@@ -238,7 +243,7 @@ export default function DepositModal({
                     initiated_at: createdAt,
                     current_step_at: createdAt,
                     app_developer: "Orpheus",
-                    miner_fee: minerFee.toString(),
+                    miner_fee: estimatedLockToColdFeeInBtc.toString(),
                     service_fee: "0",
                     steps: [
                         {
@@ -273,6 +278,7 @@ export default function DepositModal({
                 }, 2000);
             } catch (signError) {
                 setErrorMessage("Deposit failed: Please try again later: " + signError);
+                console.log("[DepositModal] signError", signError);
                 setIsDepositing(false);
             }
         } catch (error) {
@@ -335,7 +341,7 @@ export default function DepositModal({
                         <>
                             {/* Header */}
                             <View style={styles.header}>
-                                <Icon name="tbtc" size={18} />
+                                <Icon name="btc" size={18} />
                                 <ThemedText style={styles.headerText}>Confirm Deposit</ThemedText>
                             </View>
                             {/* Asset Banner */}
@@ -347,7 +353,7 @@ export default function DepositModal({
                                     keyboardType="decimal-pad"
                                     placeholder="0.000000"
                                     placeholderTextColor={secondaryText}
-                                    value={inputAmount}
+                                    value={assetFrom.amount}
                                     onChangeText={(text) => handleChange(text, 6)}
                                 />
                                 <TouchableOpacity onPress={handleMax}>
@@ -356,13 +362,13 @@ export default function DepositModal({
                             </View>
                             <ThemedText style={[styles.availableText, { color: secondaryText }]}>Available: {balance.toFixed(6)} BTC</ThemedText>
                             {errorMessage ? <ThemedText style={styles.errorText}>{errorMessage}</ThemedText> : null}
-                            <ThemedText style={[styles.secondaryValue, { color: secondaryText }]}>~${Number(inputAmount) > 0 ? (Number(inputAmount) * btcPrice).toFixed(2) : "0"}</ThemedText>
+                            <ThemedText style={[styles.secondaryValue, { color: secondaryText }]}>~${Number(assetFrom.amount) > 0 ? (Number(assetFrom.amount) * btcPrice).toFixed(2) : "0"}</ThemedText>
                             {/* Transaction Fee */}
                             <View style={styles.feeSection}>
                                 <ThemedText style={styles.feeLabel}>Transaction Fee</ThemedText>
                                 <View style={styles.feeRow}>
-                                    <ThemedText>Miner Fee</ThemedText>
-                                    <ThemedText>{new BigNumber(minerFee).dividedBy(10 ** BTC_DECIMALS).toFixed(6)} BTC</ThemedText>
+                                    <ThemedText>Miner Fee{" "}</ThemedText>
+                                    <ThemedText>{new BigNumber(estimatedLockToColdFeeInBtc).toFixed(6)} BTC (≈ {estimatedLockToColdFeeInSatoshis} satoshis)</ThemedText>
                                 </View>
                             </View>
                             {/* Notice */}
@@ -380,7 +386,7 @@ export default function DepositModal({
                                     label="Confirm"
                                     type="primary"
                                     onClick={handleConfirmDeposit}
-                                    disabled={!!errorMessage || !inputAmount || isDepositing}
+                                    disabled={!!errorMessage || !assetFrom.amount || isDepositing}
                                 />
                                 {isDepositing && <ActivityIndicator style={{ marginLeft: 8 }} />}
                             </View>
@@ -393,6 +399,20 @@ export default function DepositModal({
 }
 
 function DepositAssetBanner({ assetFrom, assetTo, secondaryText }: { assetFrom: { name: string; amount: string; isLocked: boolean }; assetTo: { name: string; amount: string; isLocked: boolean }, secondaryText: string }) {
+    // Helper to remove leading zeros except for numbers less than 1 (e.g., '0.123')
+    function stripLeadingZeros(amount: string) {
+        if (!amount) return amount;
+        // If decimal, keep single 0 before decimal, else remove all leading zeros
+        if (amount.startsWith('0') && amount.length > 1) {
+            if (amount[1] === '.') {
+                return '0' + amount.replace(/^0+/, ''); // keep single 0 before decimal
+            } else {
+                return amount.replace(/^0+/, ''); // remove all leading zeros
+            }
+        }
+        return amount;
+    }
+
     return (
         <View style={styles.assetBanner}>
             {/* From */}
@@ -400,18 +420,18 @@ function DepositAssetBanner({ assetFrom, assetTo, secondaryText }: { assetFrom: 
                 <ThemedText style={[styles.assetLabel, { color: secondaryText }]}>Lock</ThemedText>
                 <View style={styles.assetRow}>
                     <Icon name={assetFrom.name.toLowerCase() as IconName} size={18} />
-                    <ThemedText style={styles.assetAmount}>{assetFrom.amount} {assetFrom.name}</ThemedText>
-                    {assetFrom.isLocked && <Icon name={"Lock" as IconName} size={18} />}
+                    <ThemedText style={styles.assetAmount}>{stripLeadingZeros(assetFrom.amount)} {assetFrom.name} {assetFrom.isLocked && <Icon name={"Lock" as IconName} size={18} />} </ThemedText>
                 </View>
             </View>
-            <Icon name={"DoubleRight" as IconName} size={18} />
+            <View style={styles.doubleRight}>
+                <Icon name={"DoubleRight" as IconName} size={18} />
+            </View>
             {/* To */}
             <View style={styles.assetColumn}>
                 <ThemedText style={[styles.assetLabel, { color: secondaryText }]}>Mint</ThemedText>
                 <View style={styles.assetRow}>
                     <Icon name={assetTo.name.toLowerCase() as IconName} size={18} />
-                    <ThemedText style={styles.assetAmount}>{assetTo.amount} {assetTo.name}</ThemedText>
-                    {assetTo.isLocked && <Icon name={"Lock" as IconName} size={18} />}
+                    <ThemedText style={styles.assetAmount}>{stripLeadingZeros(assetTo.amount)} {assetTo.name} {assetTo.isLocked && <Icon name={"Lock" as IconName} size={18} />}</ThemedText>
                 </View>
             </View>
         </View>
@@ -453,6 +473,12 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
     },
+    doubleRight: {
+        right: "5%",
+        padding: "5%",
+        alignItems: "center",
+        justifyContent: "center",
+    },
     assetLabel: {
         color: "#6B7280",
         marginBottom: 4,
@@ -477,6 +503,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+        fontSize: 8,
     },
     noticeBox: {
         backgroundColor: "#FFF3F0",

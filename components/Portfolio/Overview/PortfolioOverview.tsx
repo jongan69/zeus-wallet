@@ -7,14 +7,16 @@ import usePrice from "@/hooks/misc/usePrice";
 import usePositions from "@/hooks/zpl/usePositions";
 import { isMobile } from "@/utils/misc";
 
-import SwapToSolanaToken from "@/components/Swap/SwapInput";
+import { estimateMaxSpendableAmount } from "@/bitcoin";
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
+import useBitcoinUTXOs from "@/hooks/ares/useBitcoinUTXOs";
 import { useHoldings } from "@/hooks/misc/useHoldings";
-import { useTbtcBalance } from "@/hooks/misc/useTbtcBalance";
 import { useTheme } from "@/hooks/theme/useTheme";
+import useTwoWayPegConfiguration from "@/hooks/zpl/useTwoWayPegConfiguration";
 import { SOLANA_TX_FEE_IN_LAMPORT } from "@/utils/constant";
 import { notifyWarning } from "@/utils/notification";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import PortfolioBalance from "./PortfolioBalance";
 import PortfolioDetails from "./PortfolioDetails";
 
@@ -24,25 +26,31 @@ export default function PortfolioOverview() {
   const { nativeBalance, refetch: refetchNativeBalance } = useHoldings(solanaPubkey!);
   const { theme } = useTheme();
   const { price: btcPrice, mutate: refetchBtcPrice } = usePrice("BTCUSDC");
-  const [tbtcBalance, refetchTbtcBalance] = useTbtcBalance(bitcoinWallet?.p2tr ?? "");
+  // const [tbtcBalance, refetchTbtcBalance] = useTbtcBalance(bitcoinWallet?.p2tr ?? "");
+  const { data: bitcoinUTXOs, mutate: refetchBitcoinUTXOs } = useBitcoinUTXOs(bitcoinWallet?.p2tr);
+
   const { data: zbtcBalance, mutate: refetchZbtcBalance } = useBalance(solanaPubkey);
   const { data: positions, mutate: refetchPositions } = usePositions(solanaPubkey);
+  const { feeRate } = useTwoWayPegConfiguration();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [spendableUTXOs, setSpendableUTXOs] = useState(() => estimateMaxSpendableAmount(bitcoinUTXOs ?? [], feeRate));
 
-  console.log("[PortfolioOverview] zbtcBalance", zbtcBalance);
-  console.log("[PortfolioOverview] positions", positions);
+  useEffect(() => {
+    setSpendableUTXOs(estimateMaxSpendableAmount(bitcoinUTXOs ?? [], feeRate));
+  }, [bitcoinUTXOs, feeRate]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([
       refetchBtcPrice?.(),
-      refetchTbtcBalance?.(),
+      refetchBitcoinUTXOs?.(),
       refetchZbtcBalance?.(),
       refetchPositions?.(),
       refetchNativeBalance?.(),
     ]);
     setRefreshing(false);
-  }, [refetchBtcPrice, refetchTbtcBalance, refetchZbtcBalance, refetchPositions, refetchNativeBalance]);
+  }, [refetchBtcPrice, refetchBitcoinUTXOs, refetchZbtcBalance, refetchPositions, refetchNativeBalance]);
 
   const zbtcBalanceInVault =
     positions?.reduce(
@@ -54,8 +62,8 @@ export default function PortfolioOverview() {
     ) ?? new BigNumber(0);
 
   useEffect(() => {
-    if (nativeBalance.lamports < SOLANA_TX_FEE_IN_LAMPORT) {
-      notifyWarning("Insufficient balance to create a new hot reserve bucket");
+    if (nativeBalance.lamports && nativeBalance.lamports < SOLANA_TX_FEE_IN_LAMPORT) {
+      notifyWarning(`Need ${new BigNumber(SOLANA_TX_FEE_IN_LAMPORT).div(LAMPORTS_PER_SOL).toFixed(6)} SOL to create a new hot reserve bucket`);
     }
   }, [nativeBalance]);
 
@@ -79,14 +87,15 @@ export default function PortfolioOverview() {
       />
       <PortfolioDetails
         btcPrice={btcPrice}
-        tbtcBalance={tbtcBalance}
+        btcBalance={spendableUTXOs}
         positions={positions}
         zbtcBalance={zbtcBalance}
         zbtcBalanceInVault={zbtcBalanceInVault}
         signPsbt={signPsbt}
+        feeRate={feeRate}
       />
-      <SwapToSolanaToken />
-      <View style={{ paddingBottom: 100 }} />
+      {/* <SwapToSolanaToken /> */}
+      {/* <View style={{ paddingBottom: 100 }} /> */}
     </ScrollView>
   );
 }

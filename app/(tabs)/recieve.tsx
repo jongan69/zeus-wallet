@@ -11,24 +11,32 @@ import { ThemedText } from '@/components/ui/ThemedText';
 
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { useSolanaWallet } from "@/contexts/SolanaWalletProvider";
+import { useZplClient } from "@/contexts/ZplClientProvider";
 import { useHoldings } from "@/hooks/misc/useHoldings";
 import { capitalizeFirstLetter } from "@/utils/format";
-import { notifyError } from "@/utils/notification";
+import { notifyError, notifySuccess } from "@/utils/notification";
 
-function HoldingCard({ holding }: { holding: any }) {
+function HoldingCard({ holding, assetMint }: { holding: any, assetMint: string }) {
   const [meta, setMeta] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-
+  const isZbtc = holding.id === assetMint;
+  const balance = holding.token_info.balance;
+  const decimals = holding.token_info.decimals;
+  const balanceFormatted = balance / 10 ** decimals;
+  console.log("[HoldingCard] holding", holding);
+  console.log("[HoldingCard] assetMint", assetMint);
   React.useEffect(() => {
     let isMounted = true;
     async function fetchMeta() {
       setLoading(true);
       setError(null);
+
       try {
         if (holding.content?.json_uri) {
           const res = await fetch(holding.content.json_uri);
           const data = await res.json();
+          console.log("[HoldingCard] data", data);
           if (isMounted) setMeta(data);
         }
       } catch (e: any) {
@@ -64,18 +72,25 @@ function HoldingCard({ holding }: { holding: any }) {
         <Icon name="Error" size={32} color="#ffa794" />
       ) : meta && meta.image ? (
         <Image source={{ uri: meta.image }} style={{ width: 48, height: 48, borderRadius: 8, marginRight: 12 }} />
+      ) : isZbtc ? (
+        <Icon name="zbtc" size={32} color="#ffa794" />
       ) : (
         <Icon name="Unknown" size={32} color="#aaa" />
       )}
       <View style={{ flex: 1 }}>
         <ThemedText type="subtitle" style={{ color: '#fff', marginBottom: 2 }}>
-          {meta?.name || holding.id.slice(0, 8) + '...'}
+          {balanceFormatted > 0 && ` ${balanceFormatted} `}{isZbtc ? "zBTC" : meta?.name || holding.id.slice(0, 8) + '...'}
         </ThemedText>
         <ThemedText style={{ color: '#aaa', fontSize: 13 }}>
           {holding.id.slice(0, 16) + '...'}
         </ThemedText>
       </View>
-      <TouchableOpacity onPress={() => Clipboard.setStringAsync(holding.id)} style={{ marginLeft: 8 }}>
+      <TouchableOpacity
+        onPress={() => {
+          Clipboard.setStringAsync(holding.id);
+          notifySuccess("Copied contract address to clipboard");
+        }}
+        style={{ marginLeft: 8 }}>
         <Icon name="Copy" size={20} color="#ffa794" />
       </TouchableOpacity>
     </View>
@@ -85,7 +100,7 @@ function HoldingCard({ holding }: { holding: any }) {
 export default function RecieveScreen() {
   const { publicKey, getCurrentWallet, isAuthenticated: solanaWalletConnected, login: loginSolana } = useSolanaWallet();
   const { holdings, loading: isHoldingsLoading, error: holdingsError, refetch: refetchHoldings } = useHoldings(publicKey!);
-  
+
   const {
     wallet: bitcoinWallet,
     connectDerivedWallet,
@@ -93,6 +108,7 @@ export default function RecieveScreen() {
     connecting,
     connected,
   } = useBitcoinWallet();
+  const client = useZplClient();
 
   const isAllConnected = bitcoinWalletConnected && solanaWalletConnected;
 
@@ -236,7 +252,7 @@ export default function RecieveScreen() {
           <Text style={styles.holdingsEmpty}>No holdings found.</Text>
         ) : (
           holdings.map((holding, idx) => (
-            <HoldingCard key={holding.id || idx} holding={holding} />
+            <HoldingCard key={holding.id || idx} holding={holding} assetMint={client?.assetMint.toString() ?? ""} />
           ))
         )}
       </View>

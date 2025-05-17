@@ -1,10 +1,9 @@
+import "../polyfills";
 import { useBitcoinWallet } from "@/contexts/BitcoinWalletProvider";
 import { WalletService } from '@/contexts/SolanaWalletProvider';
 import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { notifySuccess } from '@/utils/notification';
-
-import "../polyfills";
 
 export default function IndexRedirect() {
   const [hasWallet, setHasWallet] = useState<boolean | null>(null);

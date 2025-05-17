@@ -1,38 +1,53 @@
 import { ThemedText as Text } from "@/components/ui/ThemedText";
 
+import { ThemedButton as Button } from "@/components/ui/ThemedButton";
 import { Position } from "@/types/zplClient";
 import { BTC_DECIMALS } from "@/utils/constant";
 import { formatValue } from "@/utils/format";
 import React, { useState } from "react";
-import { Button, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
+import { satoshiToBtc } from "@/bitcoin";
 import Icon from "@/components/ui/Icons";
 import { useTheme } from "@/hooks/theme/useTheme";
+import { getEstimatedLockToColdTransactionFee } from "@/utils/interaction";
 import DepositModal from "../Modals/Deposit";
 import RedeemModal from "../Modals/Redeem";
 
 const PortfolioDetails = ({
   btcPrice,
-  tbtcBalance,
+  btcBalance,
   positions,
   zbtcBalance,
   zbtcBalanceInVault,
   signPsbt,
+  feeRate,
 }: {
   btcPrice: number;
-  tbtcBalance: number;
+  btcBalance: number;
   positions: Position[] | undefined;
   zbtcBalance: BigNumber;
   zbtcBalanceInVault: BigNumber;
   signPsbt: (psbt: any) => Promise<string>;
+  feeRate: number;
 }) => {
-  // const { publicKey } = useSolanaWallet();
-  // const { nativeBalance } = useHoldings(publicKey!);
+  const [provideAmountValue, setProvideAmountValue] = useState("");
   const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const { theme } = useTheme();
-  // const defiRef = useRef<HTMLDivElement>(null);
-  // const redeemRef = useRef<HTMLDivElement>(null);
+
+  const estimatedLockToColdFeeInSatoshis =
+  getEstimatedLockToColdTransactionFee(feeRate);
+
+const estimatedLockToColdFeeInBtc = satoshiToBtc(
+  estimatedLockToColdFeeInSatoshis
+);
+
+  const provideAmount = parseFloat(provideAmountValue) || 0;
+
+  const resetProvideAmountValue = () => {
+    setProvideAmountValue("");
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme === 'dark' ? '#121212' : '#fff' }]}>
@@ -53,40 +68,29 @@ const PortfolioDetails = ({
         </Text>
       </View>
 
-      {/* tBTC Section */}
+      {/* BTC Section */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}><Text style={{ fontWeight: "bold" }}>tBTC</Text></Text>
+        <Text style={styles.sectionTitle}><Text style={{ fontWeight: "bold" }}>BTC</Text></Text>
         <View style={styles.row}>
-          <Icon name="zbtc" size={18} />
+          <Icon name="btc" size={18} />
           <Text style={styles.balanceText}>
-            {tbtcBalance > 0 ? formatValue(tbtcBalance / 10 ** BTC_DECIMALS, 6) : 0}{" "}
-            <Text style={styles.tokenText}>tBTC</Text>
+            {btcBalance > 0 ? formatValue(btcBalance / 10 ** BTC_DECIMALS, 6) : 0}{" "}
+            <Text style={styles.tokenText}>BTC</Text>
           </Text>
-          <Icon name="Lock" size={18} />
+         
         </View>
         <Text style={styles.usdText}>
-          ~${tbtcBalance > 0
-            ? formatValue((tbtcBalance / 10 ** BTC_DECIMALS) * btcPrice, 2)
+          ~${btcBalance > 0
+            ? formatValue((btcBalance / 10 ** BTC_DECIMALS) * btcPrice, 2)
             : 0} USD
         </Text>
         <Button
+          style={{ zIndex: 10 }}
           title="Deposit"
-          onPress={() => setIsDepositModalOpen(true)}
-        />
-        <DepositModal
-          isOpen={isDepositModalOpen}
-          onClose={() => setIsDepositModalOpen(false)}
-          btcPrice={btcPrice}
-          positions={positions ?? []}
-          balance={tbtcBalance > 0 ? tbtcBalance / 10 ** BTC_DECIMALS : 0}
-          max={tbtcBalance > 0 ? tbtcBalance / 10 ** BTC_DECIMALS : 0}
-          minerFee={0}
-          assetFrom={{ name: "tBTC", amount: "0", isLocked: false }}
-          assetTo={{ name: "zBTC", amount: "0", isLocked: false }}
-          isDepositAll={false}
-          signPsbt={signPsbt}
-          updateTransactions={async () => { }}
-          resetProvideAmountValue={() => { }}
+          onPress={() => {
+            setIsDepositModalOpen(true);
+            console.log("[PortfolioDetails] Deposit button pressed");
+          }}
         />
       </View>
 
@@ -108,9 +112,28 @@ const PortfolioDetails = ({
         </Text>
         <Button
           title="Redeem"
-          onPress={() => setIsRedeemModalOpen(true)}
+          onPress={() => {
+            setIsRedeemModalOpen(true);
+            console.log("[PortfolioDetails] Redeem button pressed");
+          }}
         />
       </View>
+
+      <DepositModal
+        isOpen={isDepositModalOpen}
+        onClose={() => setIsDepositModalOpen(false)}
+        btcPrice={btcPrice}
+        balance={btcBalance > 0 ? btcBalance / 10 ** BTC_DECIMALS : 0}
+        max={btcBalance > 0 ? btcBalance / 10 ** BTC_DECIMALS : 0}
+        minerFee={feeRate}
+        setAssetFromAmount={setProvideAmountValue}
+        assetFrom={{ name: "BTC", amount: provideAmountValue, isLocked: true }}
+        assetTo={{ name: "zBTC", amount: provideAmount - estimatedLockToColdFeeInBtc > 0 ? formatValue(provideAmount - estimatedLockToColdFeeInBtc, 6) : "0", isLocked: false }}
+        isDepositAll={false}
+        signPsbt={signPsbt}
+        updateTransactions={async () => { }}
+        resetProvideAmountValue={resetProvideAmountValue}
+      />
 
       <RedeemModal
         isOpen={isRedeemModalOpen}
@@ -129,13 +152,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     gap: 32,
-    // paddingBottom: 100,
+    paddingBottom: 100,
   },
   card: {
-    // backgroundColor: "#fff",
-    borderRadius: 17,
+    borderRadius: 15,
     padding: 16,
-    marginBottom: 0,
     elevation: 2,
   },
   sectionTitle: {
@@ -154,11 +175,11 @@ const styles = StyleSheet.create({
   },
   tokenText: {
     fontSize: 18,
-    // color: "#888",
+    color: "#888",
   },
   usdText: {
     fontSize: 16,
-    // color: "#333",
+    color: "#333",
   },
 });
 

@@ -36,7 +36,7 @@ function calcInputValue(inputValue: string, decimals: number) {
   return inputValue;
 }
 
-export interface RedeemModalProps {
+interface RedeemModalProps {
   isOpen: boolean;
   onClose: () => void;
   btcPrice: number;

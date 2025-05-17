@@ -1,4 +1,4 @@
-import Svg, { Path, SvgProps } from "react-native-svg";
+import Svg, { Circle, Path, SvgProps } from "react-native-svg";
 
 interface IconProps {
   props?: SvgProps;
@@ -6,7 +6,7 @@ interface IconProps {
   color?: string;
 } 
 
-function UnknownIcon({ props, size = 18 }: IconProps) {
+function UnknownIcon({ props, size = 18, color }: IconProps) {
   return (
     <Svg
       width={size}
@@ -14,9 +14,11 @@ function UnknownIcon({ props, size = 18 }: IconProps) {
       viewBox="0 0 32 32"
       {...props}
     >
-      <Path
-        d="M0 0h10v2H8v2H6v2H4v6h2v2h2v-2h2v-2h4v4h-2v6h2v2h-2v2h-2v4h2v2h2v2H0z"
-        fill="#fff"
+      <Circle
+        cx={16}
+        cy={16}
+        r={16}
+        fill={color || "#E0E0E0"}
       />
       <Path
         data-name="Path"
@@ -26,51 +28,15 @@ function UnknownIcon({ props, size = 18 }: IconProps) {
       />
       <Path
         data-name="Path"
-        d="M4 0h12v32H0v-2h2v-2h2v-4H2v-2H0v-2h2v-2h2v-2h2v-2h2v-2h2V6H8V4H6V2H4z"
-        transform="translate(16)"
-        fill="#fff"
-      />
-      <Path
-        data-name="Path"
-        d="M0 0h6v2H0z"
-        transform="translate(10 6)"
-        fill="#fff"
-      />
-      <Path
-        data-name="Path"
-        d="M0 0h2v2H0z"
-        transform="translate(8 8)"
-        fill="#fff"
-      />
-      <Path
-        data-name="Path"
         d="M0 0h6v6H4V2H0z"
         transform="translate(10 8)"
         fill="#1a1a1a"
       />
       <Path
         data-name="Path"
-        d="M0 0h2v6H0z"
-        transform="translate(16 8)"
-        fill="#fff"
-      />
-      <Path
-        data-name="Path"
-        d="M0 0h2v4H0z"
-        transform="translate(14 14)"
-        fill="#fff"
-      />
-      <Path
-        data-name="Path"
         d="M0 0h2v4H0z"
         transform="translate(10 24)"
         fill="#1a1a1a"
-      />
-      <Path
-        data-name="Path"
-        d="M0 0h4v2H2v2H0z"
-        transform="translate(12 24)"
-        fill="#fff"
       />
     </Svg>
   )

@@ -7,7 +7,6 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import Toast, { BaseToast } from 'react-native-toast-message';
 
-
 import { BitcoinWalletProvider } from '@/contexts/BitcoinWalletProvider';
 import { SolanaWalletProvider } from '@/contexts/SolanaWalletProvider';
 import { ThemeProvider } from '@/contexts/ThemeProvider';
@@ -17,6 +16,7 @@ export const unstable_settings = {
   // Ensure any route can link back to `/`
   initialRouteName: 'welcome',
 };
+
 export default function Layout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -39,7 +39,8 @@ export default function Layout() {
               <Stack.Screen name="+not-found" />
             </Stack>
             <StatusBar style="auto" />
-            <Toast 
+
+            <Toast
               config={{
                 warning: (props) => (
                   <BaseToast
@@ -66,10 +67,10 @@ export default function Layout() {
                       props?.txId && props?.solanaNetwork
                         ? `Network: ${props.solanaNetwork} | TxID: ${props.txId}`
                         : props?.txId
-                        ? `TxID: ${props.txId}`
-                        : props?.chain
-                        ? `Network: ${props.chain}`
-                        : ''
+                          ? `TxID: ${props.txId}`
+                          : props?.chain
+                            ? `Network: ${props.chain}`
+                            : ''
                     }
                   />
                 ),
